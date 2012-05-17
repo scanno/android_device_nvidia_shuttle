@@ -10,5 +10,13 @@ rild.libpath=/system/lib/libhuawei-ril.so
 rild.libargs=-d /dev/ttyUSB2 
 ro.pad.features.modem=true 
 
-ro.product.model=Full Shuttle
+ro.product.model=VegaCream BETA-2
+
+#
+# Other additions
+#
+
+debug.performance.tuning=1
+video.accelerate.hw=1
+dalvik.vm.dexopt-data-only=1              
 

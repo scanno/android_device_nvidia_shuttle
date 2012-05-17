@@ -349,7 +349,7 @@ static int start_output_stream(struct shuttle_stream_out *out)
      * tinyalsa. */
     out->write_threshold = PLAYBACK_PERIOD_COUNT * PERIOD_SIZE;
     out->config.start_threshold = PERIOD_SIZE * 2;
-    out->config.avail_min = PERIOD_SIZE;
+    // out->config.avail_min = PERIOD_SIZE; removed in newer tinyalsa brucelee666
 
 	
 	LOGD("start_output_stream: card:%d, port:%d, rate:%d",card,port,out->config.rate);
@@ -1868,7 +1868,7 @@ error_out:
 			if (x != NULL) {
 				char name[128];
 				const char* type;
-				mixer_ctl_get_name(x,name,sizeof(name));
+				mixer_ctl_get_name(x); //orig mixer_ctl_get_name(x,name,sizeof(name)) brucelee666
 				type = mixer_ctl_get_type_string(x);
 				LOGD("#%d: '%s' [%s]",i,name,type);		
 			}

@@ -95,8 +95,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
    $(LOCAL_PATH)/files/su:system/xbin/su \
-   $(LOCAL_PATH)/files/su:system/bin/su \
-   $(LOCAL_PATH)/files/busybox:system/bin/busybox \
+#   $(LOCAL_PATH)/files/busybox:system/bin/busybox \
    $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
    $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
@@ -216,7 +215,7 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
-    ro.sf.lcd_density=160 \
+    ro.sf.lcd_density=120 \
     wifi.supplicant_scan_interval=15
 
 # Set default USB interface
@@ -264,9 +263,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PROPERTY_OVERRIDES += \
 	ro.opengles.version=131072
 
-PRODUCT_PROPERTY_OVERRIDES += \
-	ro.sf.lcd_density=160
-
 ADDITIONAL_DEFAULT_PROPERTIES += \
 	ro.secure=0 
 
@@ -287,8 +283,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	ShuttleTools \
 	recovery-reboot \
-	Superuser \
-	su
+    su \
+    openvpn \
+    liblzo \
+	Superuser 
 
 # for bugmailer
 #ifneq ($(TARGET_BUILD_VARIANT),user)
