@@ -14,7 +14,6 @@
 
 # Camera
 PRODUCT_PACKAGES := \
-#    Camera \
     SpareParts \
     Development \
     Stk \
