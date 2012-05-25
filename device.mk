@@ -24,11 +24,12 @@ LOCAL_PATH := device/nvidia/shuttle
 LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
 
 DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
+PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
 
 # uses mdpi artwork where available
-PRODUCT_AAPT_CONFIG := normal mdpi
-PRODUCT_AAPT_PREF_CONFIG := mdpi
-PRODUCT_LOCALES += mdpi
+# PRODUCT_AAPT_CONFIG := normal mdpi
+# PRODUCT_AAPT_PREF_CONFIG := mdpi
+# PRODUCT_LOCALES += mdpi
 
 # Shuttle/Harmony Configs
 PRODUCT_COPY_FILES := \
@@ -94,13 +95,14 @@ PRODUCT_COPY_FILES += \
 # Generic
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
-   $(LOCAL_PATH)/files/su:system/xbin/su \
-#   $(LOCAL_PATH)/files/busybox:system/bin/busybox \
    $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
    $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery 
+
+#   $(LOCAL_PATH)/files/su:system/xbin/su \
+#   $(LOCAL_PATH)/files/busybox:system/bin/busybox \
    
 # APNs list
 PRODUCT_COPY_FILES += \
@@ -238,8 +240,8 @@ PRODUCT_PACKAGES += \
         librs_jni
 
 # Input device calibration files
-PRODUCT_COPY_FILES += \
-	device/nvidia/shuttle/it7260.idc:system/usr/idc/it7260.idc
+#PRODUCT_COPY_FILES += \
+#	device/nvidia/shuttle/it7260.idc:system/usr/idc/it7260.idc
 
 # These are the hardware-specific feature permissions
 PRODUCT_COPY_FILES += \
@@ -283,9 +285,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	ShuttleTools \
 	recovery-reboot \
-    su \
-    openvpn \
-    liblzo \
+	ApexLauncher \
+	CameraGoogle \
+        su \
+  	openvpn \
+	liblzo \
+	advancedwifilockfree \
 	Superuser 
 
 # for bugmailer

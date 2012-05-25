@@ -14,7 +14,7 @@
 
 # Camera
 PRODUCT_PACKAGES := \
-    Camera \
+#    Camera \
     SpareParts \
     Development \
     Stk \
@@ -31,4 +31,34 @@ $(call inherit-product, device/nvidia/shuttle/device.mk)
 PRODUCT_NAME := full_shuttle
 PRODUCT_DEVICE := shuttle
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := VegaCream
+PRODUCT_MODEL := VegaCream_BETA-2
+
+# Copy Google Apps
+PRODUCT_COPY_FILES += \
+	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/lib,system/lib) \
+	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/etc,system/etc) \
+	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/framework,system/framework) \
+	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/tts,system/tts)	
+
+PRODUCT_PACKAGES += \
+	ChromeBookmarksSyncAdapter \
+	GalleryGoogle \
+	GenieWidget \
+	GoogleBackupTransport \
+	GoogleCalendarSyncAdapter \
+	GoogleContactsSyncAdapter \
+	GoogleFeedback \
+	GoogleLoginService \
+	GooglePartnerSetup \
+	GoogleQuickSearchBox \
+	GoogleServicesFramework \
+	GoogleTTS \
+	MarketUpdater \
+	MediaUploader \
+	NetworkLocation \
+	OneTimeInitializer \
+	Phonesky \
+	SetupWizard \
+	Talk \
+	VoiceSearch
+
