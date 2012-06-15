@@ -234,6 +234,7 @@ PRODUCT_PACKAGES += \
 # Live Wallpapers
 PRODUCT_PACKAGES += \
 	HoloSpiralWallpaper \
+	PhaseBeamWallpaper \
         LiveWallpapers \
         LiveWallpapersPicker \
         VisualizationWallpapers \

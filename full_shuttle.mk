@@ -30,7 +30,7 @@ $(call inherit-product, device/nvidia/shuttle/device.mk)
 PRODUCT_NAME := full_shuttle
 PRODUCT_DEVICE := shuttle
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := VegaCream_BETA-2
+PRODUCT_MODEL := VegaCream_BETA-3
 
 # Copy Google Apps
 PRODUCT_COPY_FILES += \
