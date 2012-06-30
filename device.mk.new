@@ -1,0 +1,329 @@
+#
+# Copyright (C) 2011 The Android Open-Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# This file includes all definitions that apply to ALL shuttle devices, and
+# are also specific to shuttle devices
+#
+# Everything in this directory will become public
+
+LOCAL_PATH := device/nvidia/shuttle
+
+#TARGET_KERNEL_SOURCE := $(LOCAL_PATH)/kernel
+LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
+
+DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
+PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
+
+# uses mdpi artwork where available
+# PRODUCT_AAPT_CONFIG := normal mdpi
+# PRODUCT_AAPT_PREF_CONFIG := mdpi
+# PRODUCT_LOCALES += mdpi
+
+# Shuttle/Harmony Configs
+PRODUCT_COPY_FILES := \
+    $(LOCAL_KERNEL):kernel \
+    $(LOCAL_PATH)/kernel/ramdisk/init.harmony.rc:root/init.harmony.rc \
+    $(LOCAL_PATH)/kernel/ramdisk/init.harmony.usb.rc:root/init.harmony.usb.rc \
+    $(LOCAL_PATH)/kernel/ramdisk/ueventd.harmony.rc:root/ueventd.harmony.rc \
+    $(LOCAL_PATH)/kernel/ramdisk/initlogo.rle:root/initlogo.rle
+
+# Backlight
+PRODUCT_PACKAGES := \
+	lights.shuttle \
+	charger \
+	charger_res_images
+
+# Accelerometer
+PRODUCT_PACKAGES += \
+	sensors.shuttle 
+
+# Camera
+PRODUCT_PACKAGES += \
+	camera.shuttle 
+	
+# GPS
+PRODUCT_PACKAGES += \
+	gps.shuttle 
+	
+# Audio
+PRODUCT_PACKAGES += \
+	audio.primary.shuttle \
+	audio.a2dp.default \
+	libaudioutils
+
+# Touchscreen
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/files/it7260.idc:system/usr/idc/it7260.idc 
+
+# Graphics
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/files/media_profiles.xml:system/etc/media_profiles.xml
+
+# Huawei 3G modem propietary files and PPP scripts
+#PRODUCT_PACKAGES += \
+#
+#	libhuaweigeneric-ril
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/libhuawei-ril.so:system/lib/libhuawei-ril.so \
+   $(LOCAL_PATH)/files/etc/init.gprs-pppd:system/etc/init.gprs-pppd \
+   $(LOCAL_PATH)/files/etc/ppp/chap-secrets:system/etc/ppp/chap-secrets \
+   $(LOCAL_PATH)/files/etc/ppp/gprs-connect-chat:system/etc/ppp/gprs-connect-chat \
+   $(LOCAL_PATH)/files/etc/ppp/ip-down:system/etc/ppp/ip-down \
+   $(LOCAL_PATH)/files/etc/ppp/ip-down-HUAWEI:system/etc/ppp/ip-down-HUAWEI \
+   $(LOCAL_PATH)/files/etc/ppp/ip-up:system/etc/ppp/ip-up \
+   $(LOCAL_PATH)/files/etc/ppp/ip-up-HUAWEI:system/etc/ppp/ip-up-HUAWEI \
+   $(LOCAL_PATH)/files/etc/ppp/options.huawei:system/etc/ppp/options.huawei \
+   $(LOCAL_PATH)/files/etc/ppp/pap-secrets:system/etc/ppp/pap-secrets \
+   $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/pppd-ril.options
+
+# Tun - Is not needed anymore. Is included in the kernel
+#PRODUCT_COPY_FILES += \
+#    $(LOCAL_PATH)/files/tun.ko:system/lib/modules/tun.ko
+
+# Generic
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
+   $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
+   $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
+   $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
+   $(LOCAL_PATH)/files/recovery:system/bin/recovery \
+   $(LOCAL_PATH)/files/flash_image:system/bin/flash_image
+
+#   $(LOCAL_PATH)/files/su:system/xbin/su \
+#   $(LOCAL_PATH)/files/busybox:system/bin/busybox \
+   
+# APNs list
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/apns-conf.xml:system/etc/apns-conf.xml
+
+PRODUCT_PACKAGES += \
+	shuttle_hdcp_keys
+
+# NVIDIA blob necessary for wingray hardware
+PRODUCT_COPY_FILES += \
+ $(LOCAL_PATH)/proprietary/bin/nvcap_test:system/bin/nvcap_test \
+ $(LOCAL_PATH)/proprietary/bin/nvdmmultidisplay:system/bin/nvdmmultidisplay \
+ $(LOCAL_PATH)/proprietary/bin/tegrastats:system/bin/tegrastats \
+ $(LOCAL_PATH)/proprietary/bin/nv_hciattach:system/bin/nv_hciattach \
+ $(LOCAL_PATH)/proprietary/bin/nvtest:system/bin/nvtest \
+ $(LOCAL_PATH)/proprietary/bin/nvcpud:system/bin/nvcpud \
+ $(LOCAL_PATH)/proprietary/lib/libnvodm_hdmi.so:system/lib/libnvodm_hdmi.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_service.so:system/lib/libnvmm_service.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvrm_graphics.so:system/lib/libnvrm_graphics.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_asfparser.so:system/lib/libnvmm_asfparser.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvaviparserhal.so:system/lib/libnvaviparserhal.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvomxadaptor.so:system/lib/libnvomxadaptor.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmmlite_image.so:system/lib/libnvmmlite_image.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmmlite_utils.so:system/lib/libnvmmlite_utils.so \
+ $(LOCAL_PATH)/proprietary/lib/omxplayer.so:system/lib/omxplayer.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvcpud.so:system/lib/libnvcpud.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvos.so:system/lib/libnvos.so \
+ $(LOCAL_PATH)/proprietary/lib/egl/libGLESv2_tegra.so:system/lib/egl/libGLESv2_tegra.so \
+ $(LOCAL_PATH)/proprietary/lib/egl/libGLESv1_CM_tegra.so:system/lib/egl/libGLESv1_CM_tegra.so \
+ $(LOCAL_PATH)/proprietary/lib/egl/libEGL_tegra.so:system/lib/egl/libEGL_tegra.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvhdmi3dplay_jni.so:system/lib/libnvhdmi3dplay_jni.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvddk_2d_v2.so:system/lib/libnvddk_2d_v2.so \
+ $(LOCAL_PATH)/proprietary/lib/libcgdrv.so:system/lib/libcgdrv.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_utils.so:system/lib/libnvmm_utils.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_video.so:system/lib/libnvmm_video.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvtestio.so:system/lib/libnvtestio.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmmlite.so:system/lib/libnvmmlite.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvomxilclient.so:system/lib/libnvomxilclient.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvddk_2d.so:system/lib/libnvddk_2d.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_writer.so:system/lib/libnvmm_writer.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_audio.so:system/lib/libnvmm_audio.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvrm.so:system/lib/libnvrm.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvomx.so:system/lib/libnvomx.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvodm_misc.so:system/lib/libnvodm_misc.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvdispmgr_d.so:system/lib/libnvdispmgr_d.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvcap.so:system/lib/libnvcap.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_misc.so:system/lib/libnvmm_misc.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvodm_dtvtuner.so:system/lib/libnvodm_dtvtuner.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_parser.so:system/lib/libnvmm_parser.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvtvmr.so:system/lib/libnvtvmr.so \
+ $(LOCAL_PATH)/proprietary/lib/libardrv_dynamic.so:system/lib/libardrv_dynamic.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvavp.so:system/lib/libnvavp.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_vc1_video.so:system/lib/libnvmm_vc1_video.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_contentpipe.so:system/lib/libnvmm_contentpipe.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvcontrol_jni.so:system/lib/libnvcontrol_jni.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvwinsys.so:system/lib/libnvwinsys.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmmlite_audio.so:system/lib/libnvmmlite_audio.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvasfparserhal.so:system/lib/libnvasfparserhal.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvtestresults.so:system/lib/libnvtestresults.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvodm_query.so:system/lib/libnvodm_query.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvapputil.so:system/lib/libnvapputil.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmmlite_video.so:system/lib/libnvmmlite_video.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvparser.so:system/lib/libnvparser.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvsystemuiext_jni.so:system/lib/libnvsystemuiext_jni.so \
+ $(LOCAL_PATH)/proprietary/lib/libstagefrighthw.so:system/lib/libstagefrighthw.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_manager.so:system/lib/libnvmm_manager.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvodm_imager.so:system/lib/libnvodm_imager.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm.so:system/lib/libnvmm.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_camera.so:system/lib/libnvmm_camera.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_aviparser.so:system/lib/libnvmm_aviparser.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvstereoutils_jni.so:system/lib/libnvstereoutils_jni.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmmlite_msaudio.so:system/lib/libnvmmlite_msaudio.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvsm.so:system/lib/libnvsm.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_image.so:system/lib/libnvmm_image.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvcpud_client.so:system/lib/libnvcpud_client.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvcapclk.so:system/lib/libnvcapclk.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvwsi.so:system/lib/libnvwsi.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvcap_video.so:system/lib/libnvcap_video.so \
+ $(LOCAL_PATH)/proprietary/lib/libnvmm_msaudio.so:system/lib/libnvmm_msaudio.so \
+ $(LOCAL_PATH)/proprietary/lib/hw/gralloc.tegra.so:system/lib/hw/gralloc.tegra.so \
+ $(LOCAL_PATH)/proprietary/lib/hw/hwcomposer.tegra.so:system/lib/hw/hwcomposer.tegra.so \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvavp_vid_ucode_alt.bin:system/etc/firmware/nvavp_vid_ucode_alt.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_jpegenc.axf:system/etc/firmware/nvmm_jpegenc.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_mpeg2dec.axf:system/etc/firmware/nvmm_mpeg2dec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvavp_os_00001000.bin:system/etc/firmware/nvavp_os_00001000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_mpeg4dec.axf:system/etc/firmware/nvmm_mpeg4dec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_h264dec2x.axf:system/etc/firmware/nvmm_h264dec2x.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvrm_avp_eff00000.bin:system/etc/firmware/nvrm_avp_eff00000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_wmaprodec.axf:system/etc/firmware/nvmm_wmaprodec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/arb_test.axf:system/etc/firmware/arb_test.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/load_test2.axf:system/etc/firmware/load_test2.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_wmadec.axf:system/etc/firmware/nvmm_wmadec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_vc1dec_2x.axf:system/etc/firmware/nvmm_vc1dec_2x.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvrm_avp_0ff00000.bin:system/etc/firmware/nvrm_avp_0ff00000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/load_test0.axf:system/etc/firmware/load_test0.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvavp_os_eff00000.bin:system/etc/firmware/nvavp_os_eff00000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvavp_os_0ff00000.bin:system/etc/firmware/nvavp_os_0ff00000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_aacdec.axf:system/etc/firmware/nvmm_aacdec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvrm_avp_be000000.bin:system/etc/firmware/nvrm_avp_be000000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_mp3dec.axf:system/etc/firmware/nvmm_mp3dec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvrm_avp_9e000000.bin:system/etc/firmware/nvrm_avp_9e000000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/load_test4.axf:system/etc/firmware/load_test4.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvavp_vid_ucode.bin:system/etc/firmware/nvavp_vid_ucode.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_service.axf:system/etc/firmware/nvmm_service.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvrm_avp.bin:system/etc/firmware/nvrm_avp.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_jpegdec.axf:system/etc/firmware/nvmm_jpegdec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_manager.axf:system/etc/firmware/nvmm_manager.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/memory_stress.axf:system/etc/firmware/memory_stress.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvrm_avp_8e000000.bin:system/etc/firmware/nvrm_avp_8e000000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvavp_os_e0000000.bin:system/etc/firmware/nvavp_os_e0000000.bin \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_adtsdec.axf:system/etc/firmware/nvmm_adtsdec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_h264dec.axf:system/etc/firmware/nvmm_h264dec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/load_test1.axf:system/etc/firmware/load_test1.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_vc1dec.axf:system/etc/firmware/nvmm_vc1dec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_wavdec.axf:system/etc/firmware/nvmm_wavdec.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/nvmm_reference.axf:system/etc/firmware/nvmm_reference.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/transport_stress.axf:system/etc/firmware/transport_stress.axf \
+ $(LOCAL_PATH)/proprietary/etc/firmware/load_test3.axf:system/etc/firmware/load_test3.axf
+	
+# Bluetooth configuration files
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/main.conf:system/etc/bluetooth/main.conf \
+   $(LOCAL_PATH)/files/bluecore6.psr:system/etc/bluez/bluecore6.psr \
+   $(LOCAL_PATH)/files/bluecore6.psr:system/etc/bluecore6.psr \
+   $(LOCAL_PATH)/files/hciattach:/system/bin/hciattach \
+   $(LOCAL_PATH)/files/bccmd:/system/bin/bccmd
+
+
+# Wifi
+PRODUCT_COPY_FILES += \
+	$(LOCAL_PATH)/wlan/ar6000.ko:system/lib/hw/wlan/ar6000.ko \
+	$(LOCAL_PATH)/wlan/athtcmd_ram.bin:system/lib/hw/wlan/athtcmd_ram.bin \
+	$(LOCAL_PATH)/wlan/athwlan.bin.z77:system/lib/hw/wlan/athwlan.bin.z77 \
+	$(LOCAL_PATH)/wlan/data.patch.hw2_0.bin:system/lib/hw/wlan/data.patch.hw2_0.bin \
+	$(LOCAL_PATH)/wlan/device.bin:system/lib/hw/wlan/device.bin \
+	$(LOCAL_PATH)/wlan/eeprom.bin:system/lib/hw/wlan/eeprom.bin \
+	$(LOCAL_PATH)/wlan/eeprom.data:system/lib/hw/wlan/eeprom.data \
+	$(LOCAL_PATH)/wlan/abtfilt:system/bin/abtfilt
+
+PRODUCT_PROPERTY_OVERRIDES := \
+    wifi.interface=wlan0 \
+    ro.sf.lcd_density=120 \
+    wifi.supplicant_scan_interval=15
+
+# Set default USB interface
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+	persist.sys.usb.config=mtp
+
+# NFC
+PRODUCT_PACKAGES += \
+        libnfc \
+        libnfc_jni \
+        Nfc \
+        Tag
+
+# Live Wallpapers
+PRODUCT_PACKAGES += \
+	HoloSpiralWallpaper \
+        LiveWallpapers \
+        LiveWallpapersPicker \
+        VisualizationWallpapers \
+        librs_jni
+
+# These are the hardware-specific feature permissions
+PRODUCT_COPY_FILES += \
+    frameworks/base/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
+    frameworks/base/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
+    frameworks/base/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
+    frameworks/base/data/etc/android.hardware.location.xml:system/etc/permissions/android.hardware.location.xml \
+    frameworks/base/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
+    frameworks/base/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
+    frameworks/base/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
+    frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
+    frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
+    frameworks/base/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
+    frameworks/base/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
+    frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
+    frameworks/base/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
+    frameworks/base/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
+    frameworks/base/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml \
+    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml 
+
+PRODUCT_PROPERTY_OVERRIDES += \
+	ro.opengles.version=131072
+
+ADDITIONAL_DEFAULT_PROPERTIES += \
+	ro.secure=0 
+
+PRODUCT_CHARACTERISTICS := tablet
+
+
+PRODUCT_TAGS += dalvik.gc.type-precise
+
+PRODUCT_PACKAGES += \
+	librs_jni \
+	com.android.future.usb.accessory
+
+# Filesystem management tools
+PRODUCT_PACKAGES += \
+	setup_fs
+
+# Add prebuild apks and superuser
+PRODUCT_PACKAGES += \
+	ShuttleTools \
+	ApexLauncher \
+	CameraGoogle \
+        su \
+  	openvpn \
+	liblzo \
+	advancedwifilockfree \
+	Superuser
+#recovery-reboot
+
+# for bugmailer
+#ifneq ($(TARGET_BUILD_VARIANT),user)
+#	PRODUCT_PACKAGES += send_bug
+#	PRODUCT_COPY_FILES += \
+#		system/extras/bugmailer/bugmailer.sh:system/bin/bugmailer.sh \
+#		system/extras/bugmailer/send_bug:system/bin/send_bug
+#endif
+
+$(call inherit-product, frameworks/base/build/tablet-dalvik-heap.mk)
+#$(call inherit-product, vendor/nvidia/shuttle/device-vendor.mk)

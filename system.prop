@@ -10,8 +10,6 @@ rild.libpath=/system/lib/libhuawei-ril.so
 rild.libargs=-d /dev/ttyUSB2 
 ro.pad.features.modem=true 
 
-ro.product.model=VegaCream_BETA-2
-
 #
 # Other additions
 #

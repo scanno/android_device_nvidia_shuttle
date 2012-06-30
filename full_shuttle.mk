@@ -25,12 +25,19 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 #$(call inherit-product, device/sample/products/backup_overlay.mk)
 # Inherit from ahuttle device
 $(call inherit-product, device/nvidia/shuttle/device.mk)
+#$(call inherit-product, device/nvidia/shuttle/nvidia-blobs.mk)
 
 # Set those variables here to overwrite the inherited values.
 PRODUCT_NAME := full_shuttle
 PRODUCT_DEVICE := shuttle
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := VegaCream_BETA-3
+PRODUCT_MODEL := VegaCream Beta 4
+PRODUCT_MANUFACTURER := NVidia
+BUILD_DISPLAY := VegaCream Beta 4
+PRIVATE_BUILD_DESC := "US_epad-user 4.0.3 IML74K US_epad-9.4.2.21-20120323 release-keys"
+BUILD_FINGERPRINT := asus/WW_epad/EeePad:4.0.3/IML74K/WW_epad-9.4.3.29-20120511:user/release-keys
+
+
 
 # Copy Google Apps
 PRODUCT_COPY_FILES += \
@@ -49,7 +56,6 @@ PRODUCT_PACKAGES += \
 	GoogleFeedback \
 	GoogleLoginService \
 	GooglePartnerSetup \
-	GoogleQuickSearchBox \
 	GoogleServicesFramework \
 	GoogleTTS \
 	MarketUpdater \
@@ -59,5 +65,8 @@ PRODUCT_PACKAGES += \
 	Phonesky \
 	SetupWizard \
 	Talk \
-	VoiceSearch
+	VoiceSearch \
+	YouTube \
+	PlayMusic
 
+#	GoogleQuickSearchBox 

@@ -21,6 +21,7 @@
 
 LOCAL_PATH := device/nvidia/shuttle
 
+#TARGET_KERNEL_SOURCE := $(LOCAL_PATH)/kernel
 LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
 
 DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
@@ -34,10 +35,10 @@ PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
 # Shuttle/Harmony Configs
 PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
-    $(LOCAL_PATH)/files/init.shuttle.rc:root/init.shuttle.rc \
-    $(LOCAL_PATH)/files/init.shuttle.usb.rc:root/init.shuttle.usb.rc \
-    $(LOCAL_PATH)/files/ueventd.shuttle.rc:root/ueventd.shuttle.rc \
-    $(LOCAL_PATH)/files/initlogo.rle:root/initlogo.rle
+    $(LOCAL_PATH)/files/ramdisk/init.harmony.rc:root/init.harmony.rc \
+    $(LOCAL_PATH)/files/ramdisk/init.harmony.usb.rc:root/init.harmony.usb.rc \
+    $(LOCAL_PATH)/files/ramdisk/ueventd.harmony.rc:root/ueventd.harmony.rc \
+    $(LOCAL_PATH)/files/ramdisk/initlogo.rle:root/initlogo.rle
 
 # Backlight
 PRODUCT_PACKAGES := \
@@ -88,10 +89,6 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/ppp/pap-secrets:system/etc/ppp/pap-secrets \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/pppd-ril.options
 
-# Tun
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/files/tun.ko:system/lib/modules/tun.ko
-
 # Generic
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
@@ -99,10 +96,8 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
-   $(LOCAL_PATH)/files/recovery:system/bin/recovery 
-
-#   $(LOCAL_PATH)/files/su:system/xbin/su \
-#   $(LOCAL_PATH)/files/busybox:system/bin/busybox \
+   $(LOCAL_PATH)/files/recovery:system/bin/recovery \
+   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
    
 # APNs list
 PRODUCT_COPY_FILES += \
@@ -234,7 +229,6 @@ PRODUCT_PACKAGES += \
 # Live Wallpapers
 PRODUCT_PACKAGES += \
 	HoloSpiralWallpaper \
-	PhaseBeamWallpaper \
         LiveWallpapers \
         LiveWallpapersPicker \
         VisualizationWallpapers \
@@ -285,14 +279,15 @@ PRODUCT_PACKAGES += \
 # Add prebuild apks and superuser
 PRODUCT_PACKAGES += \
 	ShuttleTools \
-	recovery-reboot \
 	ApexLauncher \
 	CameraGoogle \
         su \
   	openvpn \
 	liblzo \
-	advancedwifilockfree \
 	Superuser 
+
+#	recovery-reboot - Not needed anymore because we can reboot into recovery from the powermenu
+#	advancedwifilockfree - Not needed anymore because the wifi problems have been solved.
 
 # for bugmailer
 #ifneq ($(TARGET_BUILD_VARIANT),user)
