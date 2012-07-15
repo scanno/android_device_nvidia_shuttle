@@ -42,7 +42,7 @@
 #define  GPS_DEBUG  0
 
 #if GPS_DEBUG
-#  define  D(...)   LOGD(__VA_ARGS__)
+#  define  D(...)   ALOGD(__VA_ARGS__)
 #else
 #  define  D(...)   ((void)0)
 #endif
@@ -117,7 +117,7 @@ static int serial_open( const char* name )
     } while (fd < 0 && errno == EINTR);
 
     if (fd < 0) {
-        LOGE("could not open serial device %s: %s", name, strerror(errno) );
+        ALOGE("could not open serial device %s: %s", name, strerror(errno) );
         return fd;
     }
 
@@ -155,7 +155,7 @@ static void serial_write(int fd, char *msg)
     }
 	
 	if (ret < 0) {
-		LOGE("Error writing to serial port: %d",errno);
+		ALOGE("Error writing to serial port: %d",errno);
 		return;
 	}
 
@@ -185,7 +185,7 @@ static int serial_get_ok(int fd)
 			}
 		
 			if (ret < 0) {
-				LOGE("Error reading from serial port: %d",errno);
+				ALOGE("Error reading from serial port: %d",errno);
 				return 0;
 			}
 
@@ -226,7 +226,7 @@ static void dev_power(int state)
     int ret;
 
     if (property_get("gps.power_on",prop,GPS_POWER_IF) == 0) {
-        LOGE("no gps power interface name");
+        ALOGE("no gps power interface name");
         return;
     }
 
@@ -235,7 +235,7 @@ static void dev_power(int state)
     } while (fd < 0 && errno == EINTR);
 
     if (fd < 0) {
-        LOGE("could not open gps power interface: %s", prop );
+        ALOGE("could not open gps power interface: %s", prop );
         return;
     }
 
@@ -1128,7 +1128,7 @@ static int open_gps_ctl()
 
 	gps_ctl_fd = serial_open( prop_value );
     if (gps_ctl_fd < 0) {
-        LOGE("could not open gps serial device %s: %s", prop_value, strerror(errno) );
+        ALOGE("could not open gps serial device %s: %s", prop_value, strerror(errno) );
         return -1;
     }
 
@@ -1157,7 +1157,7 @@ static int open_gps()
 
 	gps_fd = serial_open( prop_value );
     if (gps_fd < 0) {
-        LOGE("could not open gps serial device %s: %s", prop_value, strerror(errno) );
+        ALOGE("could not open gps serial device %s: %s", prop_value, strerror(errno) );
 		dev_power(0);
         return -1;
     }
@@ -1275,13 +1275,13 @@ static void* gps_state_thread( void* arg )
         nevents = epoll_wait( epoll_fd, events, 2, -1 );
         if (nevents < 0) {
             if (errno != EINTR)
-                LOGE("epoll_wait() unexpected error: %s", strerror(errno));
+                ALOGE("epoll_wait() unexpected error: %s", strerror(errno));
             continue;
         }
         D("gps thread received %d events", nevents);
         for (ne = 0; ne < nevents; ne++) {
             if ((events[ne].events & (EPOLLERR|EPOLLHUP)) != 0) {
-                LOGE("EPOLLERR or EPOLLHUP after epoll_wait() - Means GPS was turned off");
+                ALOGE("EPOLLERR or EPOLLHUP after epoll_wait() - Means GPS was turned off");
                 goto Exit;
             }
             if ((events[ne].events & EPOLLIN) != 0) {
@@ -1320,7 +1320,7 @@ static void* gps_state_thread( void* arg )
                             state->init = STATE_START; /* The timer thread depends on this to properly start */
 
 							if ( pthread_create( &state->tmr_thread, NULL, gps_timer_thread, state ) != 0 ) {
-                                LOGE("could not create gps timer thread: %s", strerror(errno));
+                                ALOGE("could not create gps timer thread: %s", strerror(errno));
 								
 								// Remove it from the monitoring set
 								epoll_deregister( epoll_fd, gps_fd );	
@@ -1392,7 +1392,7 @@ static void* gps_state_thread( void* arg )
                 }
                 else
                 {
-                    LOGE("epoll_wait() returned unkown fd %d ?", fd);
+                    ALOGE("epoll_wait() returned unkown fd %d ?", fd);
                 }
             }
         }
@@ -1493,13 +1493,13 @@ static void gps_state_init( GpsState*  state )
     }
 	
     if ( socketpair( AF_LOCAL, SOCK_STREAM, 0, state->control ) < 0 ) {
-        LOGE("could not create thread control socket pair: %s", strerror(errno));
+        ALOGE("could not create thread control socket pair: %s", strerror(errno));
         goto Fail;
     }
 
 	
     if ( pthread_create( &state->thread, NULL, gps_state_thread, state ) != 0 ) {
-        LOGE("could not create gps thread: %s", strerror(errno));
+        ALOGE("could not create gps thread: %s", strerror(errno));
         goto Fail;
     }
 	
@@ -1790,7 +1790,7 @@ static const GpsInterface sGpsInterface = {
 
 static const GpsInterface* gps_get_hardware_interface(struct gps_device_t* dev)
 {
-	LOGV("get_interface was called");
+	ALOGV("get_interface was called");
     return &sGpsInterface;
 }
 

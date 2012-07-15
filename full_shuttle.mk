@@ -31,9 +31,9 @@ $(call inherit-product, device/nvidia/shuttle/device.mk)
 PRODUCT_NAME := full_shuttle
 PRODUCT_DEVICE := shuttle
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := VegaCream Beta 4
+PRODUCT_MODEL := VegaBean Alpha 1
 PRODUCT_MANUFACTURER := NVidia
-BUILD_DISPLAY := VegaCream Beta 4
+BUILD_DISPLAY := VegaBean Alpha 1
 PRIVATE_BUILD_DESC := "US_epad-user 4.0.3 IML74K US_epad-9.4.2.21-20120323 release-keys"
 BUILD_FINGERPRINT := asus/WW_epad/EeePad:4.0.3/IML74K/WW_epad-9.4.3.29-20120511:user/release-keys
 

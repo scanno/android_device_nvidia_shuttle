@@ -91,7 +91,7 @@ static int open_inputdev(const char* id)
 		
 		strcpy(filename, de->d_name);
 		
-		LOGD("Querying '%s' ...",devname);
+		ALOGD("Querying '%s' ...",devname);
 		fd = open(devname, O_RDONLY);
 		if (fd >= 0) {
 			
@@ -99,9 +99,9 @@ static int open_inputdev(const char* id)
 			if (ioctl(fd, EVIOCGNAME(sizeof(name) - 1), &name) < 1) {
 				name[0] = '\0';
 			}
-			LOGD("Device '%s' is '%s' ... Looking for '%s' ...", devname,name,id);
+			ALOGD("Device '%s' is '%s' ... Looking for '%s' ...", devname,name,id);
 			if (!strcmp(name, id)) {
-				LOGV("using (name=%s)", name);
+				ALOGV("using (name=%s)", name);
 				break;
 			}
 			close(fd);
@@ -111,7 +111,7 @@ static int open_inputdev(const char* id)
 	closedir(dir);
 
 	if (fd < 0) {
-		LOGE("Couldn't find or open '%s' driver (%s)", id, strerror(errno));
+		ALOGE("Couldn't find or open '%s' driver (%s)", id, strerror(errno));
 	}
 	return fd;
 }
@@ -151,7 +151,7 @@ static int poll__activate(struct sensors_poll_device_t *dev, int handle, int ena
 {
 	sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
 	
-	LOGD("activate: %d",enabled);
+	ALOGD("activate: %d",enabled);
 	
 	/* If already in the right state, don't do anything */
 	if (ctx->enabled == enabled)
@@ -178,7 +178,7 @@ static int poll__close(struct hw_device_t *dev)
 {
 	struct sensors_poll_context_t* ctx = (struct sensors_poll_context_t*)dev;
 	
-	LOGD("close");
+	ALOGD("close");
 	
 	if (ctx) {
 		if (ctx->fd != -1) {
@@ -197,19 +197,19 @@ static int poll__poll(struct sensors_poll_device_t *dev, sensors_event_t* data, 
 	sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
 	
 //comment out LOGD to stop span in logs, dont need to see poll every second -cass
-	//LOGD("poll");
+	//ALOGD("poll");
 	
 	int fd;
 	int pos = 0;
 	
 	if (inc_uses(ctx) != 0) {
-	    LOGE("Unable to enable sensor");
+	    ALOGE("Unable to enable sensor");
 	    return -1;
 	}
 	
 	fd = ctx->fd;
 	if (fd < 0) {
-		LOGE("invalid accelerometer file descriptor, fd=%d", fd);
+		ALOGE("invalid accelerometer file descriptor, fd=%d", fd);
 		return -1;
 	}
 
@@ -227,10 +227,10 @@ static int poll__poll(struct sensors_poll_device_t *dev, sensors_event_t* data, 
 		FD_ZERO(&rfds);
 		FD_SET(fd, &rfds);
 		n = select(fd + 1, &rfds, NULL, NULL, NULL);
-		LOGV("return from select: %d\n", n);
+		ALOGV("return from select: %d\n", n);
 		
 		if (n < 0) {
-			LOGE("%s: error from select(%d): %s",
+			ALOGE("%s: error from select(%d): %s",
 			__FUNCTION__, fd, strerror(errno));
 			dec_uses(ctx);
 			return pos;
@@ -241,7 +241,7 @@ static int poll__poll(struct sensors_poll_device_t *dev, sensors_event_t* data, 
 			if (nread == sizeof(event)) {
 				
 				if (event.type == EV_ABS) {
-					LOGV("event type: %d code: %d value: %-5d time: %ds",
+					ALOGV("event type: %d code: %d value: %-5d time: %ds",
 					event.type, event.code, event.value,(int)event.time.tv_sec);
 					
 					switch (event.code) {
@@ -268,9 +268,9 @@ static int poll__poll(struct sensors_poll_device_t *dev, sensors_event_t* data, 
 					return pos;
 				}
 			}
-			else LOGE("read too small %d", nread);
+			else ALOGE("read too small %d", nread);
 		}
-		else LOGV("fd is not set");
+		else ALOGV("fd is not set");
 	}
 }
 
@@ -278,7 +278,7 @@ static int poll__poll(struct sensors_poll_device_t *dev, sensors_event_t* data, 
 
 static int poll__set_delay(struct sensors_poll_device_t *dev, int handle, int64_t us)
 {
-	LOGD("set_delay");
+	ALOGD("set_delay");
 	return 0;
 }
 
@@ -289,7 +289,7 @@ static int open_sensors(const struct hw_module_t* module, const char* name, stru
 {
 	struct sensors_poll_context_t *dev;
 	
-	LOGD("open_sensors");
+	ALOGD("open_sensors");
 	
 	dev = (struct sensors_poll_context_t *) malloc(sizeof(*dev));
 	memset(dev, 0, sizeof(*dev));
@@ -323,7 +323,7 @@ static const struct sensor_t sSensorList[] = {
 
 static int sensors__get_sensors_list(struct sensors_module_t* module, struct sensor_t const** list)
 {
-	LOGD("get_sensors_list");
+	ALOGD("get_sensors_list");
 	
 	*list = sSensorList;
 	return ARRAY_SIZE(sSensorList);
