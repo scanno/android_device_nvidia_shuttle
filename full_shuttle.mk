@@ -25,7 +25,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 #$(call inherit-product, device/sample/products/backup_overlay.mk)
 # Inherit from ahuttle device
 $(call inherit-product, device/nvidia/shuttle/device.mk)
-#$(call inherit-product, device/nvidia/shuttle/nvidia-blobs.mk)
 
 # Set those variables here to overwrite the inherited values.
 PRODUCT_NAME := full_shuttle
@@ -37,36 +36,5 @@ BUILD_DISPLAY := VegaBean Alpha 1
 PRIVATE_BUILD_DESC := "US_epad-user 4.0.3 IML74K US_epad-9.4.2.21-20120323 release-keys"
 BUILD_FINGERPRINT := asus/WW_epad/EeePad:4.0.3/IML74K/WW_epad-9.4.3.29-20120511:user/release-keys
 
+$(call inherit-product, device/nvidia/shuttle/google_apps.mk)
 
-
-# Copy Google Apps
-PRODUCT_COPY_FILES += \
-	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/lib,system/lib) \
-	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/etc,system/etc) \
-	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/framework,system/framework) \
-	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/tts,system/tts)	
-
-PRODUCT_PACKAGES += \
-	ChromeBookmarksSyncAdapter \
-	GalleryGoogle \
-	GenieWidget \
-	GoogleBackupTransport \
-	GoogleCalendarSyncAdapter \
-	GoogleContactsSyncAdapter \
-	GoogleFeedback \
-	GoogleLoginService \
-	GooglePartnerSetup \
-	GoogleServicesFramework \
-	GoogleTTS \
-	MarketUpdater \
-	MediaUploader \
-	NetworkLocation \
-	OneTimeInitializer \
-	Phonesky \
-	SetupWizard \
-	Talk \
-	VoiceSearch \
-	YouTube \
-	PlayMusic
-
-#	GoogleQuickSearchBox 

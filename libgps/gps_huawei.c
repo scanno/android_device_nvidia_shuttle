@@ -1814,7 +1814,7 @@ static struct hw_module_methods_t gps_module_methods = {
     .open = open_gps_module
 };
 
-DLL_PUBLIC const struct hw_module_t HAL_MODULE_INFO_SYM = {
+DLL_PUBLIC struct hw_module_t HAL_MODULE_INFO_SYM = {
     .tag = HARDWARE_MODULE_TAG,
     .version_major = 1,
     .version_minor = 0,

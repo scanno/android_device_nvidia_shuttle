@@ -16,7 +16,11 @@
 
 # This variable is set first, so it can be overridden
 # by BoardConfigVendor.mk
-USE_CAMERA_STUB := true
+BOARD_USES_GENERIC_AUDIO := true
+USE_CAMERA_STUB := false
+
+BOARD_USES_AUDIO_LEGACY := false
+TARGET_USES_OLD_LIBSENSORS_HAL := false
 
 # Use the non-open-source parts, if they're present
 -include vendor/nvidia/shuttle/BoardConfigVendor.mk
@@ -30,20 +34,22 @@ BOARD_CUSTOM_RECOVERY_KEYMAPPING := device/nvidia/shuttle/recovery_ui.c
 
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
+TARGET_CPU_SMP := true
+TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a
 TARGET_ARCH_VARIANT_CPU := cortex-a9
 TARGET_ARCH_VARIANT_FPU := vfpv3-d16
-TARGET_CPU_SMP := true
-TARGET_HAVE_TEGRA_ERRATA_657451 := true
+#TARGET_HAVE_TEGRA_ERRATA_657451 := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
-BOARD_KERNEL_BASE := 0x10000000
 #Stock CMDLINE
 BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1  mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),155008K@23680K(system),32768K@179200K(cache),4096K@212480K(staging),306688K@217088K(userdata)
+BOARD_KERNEL_BASE := 0x10000000
 BOARD_PAGE_SIZE := 0x00000800
 
 TARGET_NO_RADIOIMAGE := true
 TARGET_BOARD_PLATFORM := tegra
+TARGET_TEGRA_VERSION := t25
 TARGET_BOOTLOADER_BOARD_NAME := shuttle
 #TARGET_BOARD_INFO_FILE := device/nvidia/shuttle/board-info.txt
 
@@ -51,6 +57,9 @@ BOARD_EGL_CFG := device/nvidia/shuttle/files/egl.cfg
 
 BOARD_USES_OVERLAY := true
 USE_OPENGL_RENDERER := true
+
+TARGET_OTA_ASSERT_DEVICE := n01,shuttle,P10AN01
+
 
 BOARD_BOOTIMAGE_PARTITION_SIZE := 0x01000000
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x0c800000
@@ -75,6 +84,9 @@ WIFI_DRIVER_LOADER_DELAY	:= 3000000
 # 3G
 BOARD_MOBILEDATA_INTERFACE_NAME := "ppp0"
 
+# Sensors
+BOARD_USES_GENERIC_INVENSENSE := false
+
 #BT
 BOARD_HAVE_BLUETOOTH := true
 #BOARD_HAVE_BLUETOOTH_BCM := true
@@ -87,11 +99,29 @@ BOARD_HAVE_GPS := true
 BOARD_USE_SCREENCAP := true
 PRODUCT_CHARACTERISTICS := tablet
 BOARD_USES_SECURE_SERVICES := true
+
 # Use a smaller subset of system fonts to keep image size lower
 SMALLER_FONT_FOOTPRINT := true
+
 # Skip droiddoc build to save build time
 BOARD_SKIP_ANDROID_DOC_BUILD := true
 TARGET_RECOVERY_PRE_COMMAND := "setrecovery boot-recovery recovery"
 BOARD_HDMI_MIRROR_MODE := Scale
+
 # Setting this to avoid boot locks on the system from using the "misc" partition.
 BOARD_HAS_NO_MISC_PARTITION := true
+
+BOARD_HAS_NO_SELECT_BUTTON := true
+
+BOARD_VOLD_MAX_PARTITIONS := 11
+
+BOARD_NO_ALLOW_DEQUEUE_CURRENT_BUFFER := true
+
+# Use nicer font rendering
+BOARD_USE_SKIA_LCDTEXT := true
+
+# Avoid generating of ldrcc instructions
+NEED_WORKAROUND_CORTEX_A9_745320 := true
+
+TARGET_RECOVERY_UI_LIB := librecovery_ui_shuttle
+TARGET_RELEASETOOLS_EXTENSIONS := device/nvidia/shuttle

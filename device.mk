@@ -32,8 +32,40 @@ DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
 # PRODUCT_AAPT_PREF_CONFIG := mdpi
 # PRODUCT_LOCALES += mdpi
 
-# Shuttle/Harmony Configs
-PRODUCT_COPY_FILES := \
+# These are the hardware-specific feature permissions
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
+    frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
+    frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
+    frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
+    frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
+    frameworks/native/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml \
+    frameworks/native/data/etc/android.hardware.sensor.gyroscope.xml:system/etc/permissions/android.hardware.sensor.gyroscope.xml \
+    frameworks/native/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
+    frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
+    frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
+    frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
+    frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
+    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml \
+    frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
+    frameworks/native/data/etc/android.hardware.location.xml:system/etc/permissions/android.hardware.location.xml
+    
+#	frameworks/base/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml
+#	frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml
+
+
+# Keychars
+# Keylayout
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/files/gpio-keys.kcm:system/usr/keychars/gpio-keys.kcm \
+    $(LOCAL_PATH)/files/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl 
+
+# Vold
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab
+
+# Shuttle Configs
+PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.rc:root/init.harmony.rc \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.usb.rc:root/init.harmony.usb.rc \
@@ -42,9 +74,7 @@ PRODUCT_COPY_FILES := \
 
 # Backlight
 PRODUCT_PACKAGES := \
-	lights.shuttle \
-	charger \
-	charger_res_images
+	lights.shuttle
 
 # Accelerometer
 PRODUCT_PACKAGES += \
@@ -62,8 +92,13 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	audio.primary.shuttle \
 	audio.a2dp.default \
+        audio.usb.default \
 	libaudioutils
 	
+# Power
+PRODUCT_PACKAGES += \
+	power.shuttle
+
 # Touchscreen
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/it7260.idc:system/usr/idc/it7260.idc 
@@ -71,6 +106,14 @@ PRODUCT_COPY_FILES += \
 # Graphics
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/media_profiles.xml:system/etc/media_profiles.xml
+
+# Codecs
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/files/media_codecs.xml:system/etc/media_codecs.xml
+
+# Audio policy configuration
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/files/audio_policy.conf:system/etc/audio_policy.conf
 
 # Huawei 3G modem propietary files and PPP scripts
 #PRODUCT_PACKAGES += \
@@ -89,15 +132,18 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/ppp/pap-secrets:system/etc/ppp/pap-secrets \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/pppd-ril.options
 
+PRODUCT_PROPERTY_OVERRIDES := \
+    keyguard.no_require_sim=true
+
 # Generic
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
    $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
-   $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
-   $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
-   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
+   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image \
+   $(LOCAL_PATH)/files/su:system/xbin/su \
+   $(LOCAL_PATH)/files/busybox:system/xbin/busybox
    
 # APNs list
 PRODUCT_COPY_FILES += \
@@ -106,88 +152,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
 	shuttle_hdcp_keys
 
-# NVIDIA blob necessary for wingray hardware
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/proprietary/nvmm_aacdec.axf:system/etc/firmware/nvmm_aacdec.axf \
-    $(LOCAL_PATH)/proprietary/nvddk_audiofx_core.axf:system/etc/firmware/nvddk_audiofx_core.axf \
-    $(LOCAL_PATH)/proprietary/nvddk_audiofx_transport.axf:system/etc/firmware/nvddk_audiofx_transport.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_adtsdec.axf:system/etc/firmware/nvmm_adtsdec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_audiomixer.axf:system/etc/firmware/nvmm_audiomixer.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_h264dec.axf:system/etc/firmware/nvmm_h264dec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_jpegdec.axf:system/etc/firmware/nvmm_jpegdec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_jpegenc.axf:system/etc/firmware/nvmm_jpegenc.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_manager.axf:system/etc/firmware/nvmm_manager.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_mp2dec.axf:system/etc/firmware/nvmm_mp2dec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_mp3dec.axf:system/etc/firmware/nvmm_mp3dec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_mpeg4dec.axf:system/etc/firmware/nvmm_mpeg4dec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_reference.axf:system/etc/firmware/nvmm_reference.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_service.axf:system/etc/firmware/nvmm_service.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_sorensondec.axf:system/etc/firmware/nvmm_sorensondec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_sw_mp3dec.axf:system/etc/firmware/nvmm_sw_mp3dec.axf \
-    $(LOCAL_PATH)/proprietary/nvmm_wavdec.axf:system/etc/firmware/nvmm_wavdec.axf \
-    $(LOCAL_PATH)/proprietary/nvrm_avp.bin:system/etc/firmware/nvrm_avp.bin \
-    $(LOCAL_PATH)/proprietary/libEGL_tegra.so:system/lib/egl/libEGL_tegra.so \
-    $(LOCAL_PATH)/proprietary/libGLESv1_CM_tegra.so:system/lib/egl/libGLESv1_CM_tegra.so \
-    $(LOCAL_PATH)/proprietary/libGLESv2_tegra.so:system/lib/egl/libGLESv2_tegra.so \
-    $(LOCAL_PATH)/proprietary/gralloc.tegra.so:system/lib/hw/gralloc.tegra.so \
-    $(LOCAL_PATH)/proprietary/hwcomposer.tegra.so:system/lib/hw/hwcomposer.tegra.so \
-    $(LOCAL_PATH)/proprietary/libcgdrv.so:system/lib/libcgdrv.so \
-    $(LOCAL_PATH)/proprietary/libnvasfparserhal.so:system/lib/libnvasfparserhal.so \
-    $(LOCAL_PATH)/proprietary/libnvaviparserhal.so:system/lib/libnvaviparserhal.so \
-    $(LOCAL_PATH)/proprietary/libnvavp.so:system/lib/libnvavp.so \
-    $(LOCAL_PATH)/proprietary/libnvcpud_client.so:system/lib/libnvcpud_client.so \
-    $(LOCAL_PATH)/proprietary/libnvcpud.so:system/lib/libnvcpud.so \
-    $(LOCAL_PATH)/proprietary/libnvddk_2d.so:system/lib/libnvddk_2d.so \
-    $(LOCAL_PATH)/proprietary/libnvddk_2d_v2.so:system/lib/libnvddk_2d_v2.so \
-    $(LOCAL_PATH)/proprietary/libnvddk_audiofx.so:system/lib/libnvddk_audiofx.so \
-    $(LOCAL_PATH)/proprietary/libnvdispatch_helper.so:system/lib/libnvdispatch_helper.so \
-    $(LOCAL_PATH)/proprietary/libnvdispmgr_d.so:system/lib/libnvdispmgr_d.so \
-    $(LOCAL_PATH)/proprietary/libnvhdmi3dplay_jni.so:system/lib/libnvhdmi3dplay_jni.so \
-    $(LOCAL_PATH)/proprietary/libnvmm.so:system/lib/libnvmm.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_asfparser.so:system/lib/libnvmm_asfparser.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_audio.so:system/lib/libnvmm_audio.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_aviparser.so:system/lib/libnvmm_aviparser.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_camera.so:system/lib/libnvmm_camera.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_contentpipe.so:system/lib/libnvmm_contentpipe.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_image.so:system/lib/libnvmm_image.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_manager.so:system/lib/libnvmm_manager.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_misc.so:system/lib/libnvmm_misc.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_msaudio.so:system/lib/libnvmm_msaudio.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_parser.so:system/lib/libnvmm_parser.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_service.so:system/lib/libnvmm_service.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_tracklist.so:system/lib/libnvmm_tracklist.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_utils.so:system/lib/libnvmm_utils.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_vc1_video.so:system/lib/libnvmm_vc1_video.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_video.so:system/lib/libnvmm_video.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_vp6_video.so:system/lib/libnvmm_vp6_video.so \
-    $(LOCAL_PATH)/proprietary/libnvmm_writer.so:system/lib/libnvmm_writer.so \
-    $(LOCAL_PATH)/proprietary/libnvmmlite.so:system/lib/libnvmmlite.so \
-    $(LOCAL_PATH)/proprietary/libnvmmlite_audio.so:system/lib/libnvmmlite_audio.so \
-    $(LOCAL_PATH)/proprietary/libnvmmlite_utils.so:system/lib/libnvmmlite_utils.so \
-    $(LOCAL_PATH)/proprietary/libnvmmlite_video.so:system/lib/libnvmmlite_video.so \
-    $(LOCAL_PATH)/proprietary/libnvodm_dtvtuner.so:system/lib/libnvodm_dtvtuner.so \
-    $(LOCAL_PATH)/proprietary/libnvodm_hdmi.so:system/lib/libnvodm_hdmi.so \
-    $(LOCAL_PATH)/proprietary/libnvodm_imager.so:system/lib/libnvodm_imager.so \
-    $(LOCAL_PATH)/proprietary/libnvodm_misc.so:system/lib/libnvodm_misc.so \
-    $(LOCAL_PATH)/proprietary/libnvodm_query.so:system/lib/libnvodm_query.so \
-    $(LOCAL_PATH)/proprietary/libnvomx.so:system/lib/libnvomx.so \
-    $(LOCAL_PATH)/proprietary/libnvomxadaptor.so:system/lib/libnvomxadaptor.so \
-    $(LOCAL_PATH)/proprietary/libnvomxilclient.so:system/lib/libnvomxilclient.so \
-    $(LOCAL_PATH)/proprietary/libnvos.so:system/lib/libnvos.so \
-    $(LOCAL_PATH)/proprietary/libnvparser.so:system/lib/libnvparser.so \
-    $(LOCAL_PATH)/proprietary/libnvrm.so:system/lib/libnvrm.so \
-    $(LOCAL_PATH)/proprietary/libnvrm_channel.so:system/lib/libnvrm_channel.so \
-    $(LOCAL_PATH)/proprietary/libnvrm_graphics.so:system/lib/libnvrm_graphics.so \
-    $(LOCAL_PATH)/proprietary/libnvsm.so:system/lib/libnvsm.so \
-    $(LOCAL_PATH)/proprietary/libnvsystemuiext_jni.so:system/lib/libnvsystemuiext_jni.so \
-    $(LOCAL_PATH)/proprietary/libnvtestio.so:system/lib/libnvtestio.so \
-    $(LOCAL_PATH)/proprietary/libnvtestresults.so:system/lib/libnvtestresults.so \
-    $(LOCAL_PATH)/proprietary/libnvtvmr.so:system/lib/libnvtvmr.so \
-    $(LOCAL_PATH)/proprietary/libnvwinsys.so:system/lib/libnvwinsys.so \
-    $(LOCAL_PATH)/proprietary/libnvwsi.so:system/lib/libnvwsi.so \
-    $(LOCAL_PATH)/proprietary/libardrv_dynamic.so:system/lib/libardrv_dynamic.so \
-    $(LOCAL_PATH)/proprietary/libstagefrighthw.so:system/lib/libstagefrighthw.so \
-    $(LOCAL_PATH)/proprietary/omxplayer.so:system/lib/omxplayer.so
+# NVidia binary blobs
+$(call inherit-product, device/nvidia/shuttle/nvidia-blobs.mk)
+ 
+# Modules
 	
 # Bluetooth configuration files
 PRODUCT_COPY_FILES += \
@@ -195,12 +163,12 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/bluecore6.psr:system/etc/bluez/bluecore6.psr \
    $(LOCAL_PATH)/files/bluecore6.psr:system/etc/bluecore6.psr \
    $(LOCAL_PATH)/files/hciattach:/system/bin/hciattach \
-   $(LOCAL_PATH)/files/nv_hciattach:/system/bin/nv_hciattach \
    $(LOCAL_PATH)/files/bccmd:/system/bin/bccmd
 
 
 # Wifi
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
 	$(LOCAL_PATH)/wlan/ar6000.ko:system/lib/hw/wlan/ar6000.ko \
 	$(LOCAL_PATH)/wlan/athtcmd_ram.bin:system/lib/hw/wlan/athtcmd_ram.bin \
 	$(LOCAL_PATH)/wlan/athwlan.bin.z77:system/lib/hw/wlan/athwlan.bin.z77 \
@@ -212,8 +180,12 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
-    ro.sf.lcd_density=120 \
     wifi.supplicant_scan_interval=15
+
+#USB
+
+PRODUCT_PACKAGES += \
+	com.android.future.usb.accessory 
 
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
@@ -231,49 +203,38 @@ PRODUCT_PACKAGES += \
 	HoloSpiralWallpaper \
         LiveWallpapers \
         LiveWallpapersPicker \
-        VisualizationWallpapers \
-        librs_jni
-
-# Input device calibration files
-#PRODUCT_COPY_FILES += \
-#	device/nvidia/shuttle/it7260.idc:system/usr/idc/it7260.idc
-
-# These are the hardware-specific feature permissions
-PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
-    frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
-    frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
-    frameworks/native/data/etc/android.hardware.location.xml:system/etc/permissions/android.hardware.location.xml \
-    frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
-    frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
-    frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
-    frameworks/native/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
-    frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
-    frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
-    frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
-    frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
-    frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
-    frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
-    frameworks/native/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml \
-    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml 
+	MagicSmokeWallpapers \
+        VisualizationWallpapers
 
 PRODUCT_PROPERTY_OVERRIDES += \
-	ro.opengles.version=131072
+    ro.opengles.version=131072 \
+	hwui.render_dirty_regions=false \
+    ro.sf.lcd_density=120 
 
-ADDITIONAL_DEFAULT_PROPERTIES += \
-	ro.secure=0 
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    ro.secure=0 \
+    persist.sys.strictmode.visual=0
+
+ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+ADDITIONAL_DEFAULT_PROPERTIES += persist.sys.strictmode.visual=0
 
 PRODUCT_CHARACTERISTICS := tablet
 
-
+# we have enough storage space to hold precice GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 PRODUCT_PACKAGES += \
-	librs_jni \
-	com.android.future.usb.accessory
+    librs_jni \
+    liba2dp \
+    libpkip \
+    tinyplay \
+    tinycap \
+    tinymix \
+    wmiconfig
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \
+	make_ext4fs \
 	setup_fs
 
 # Add prebuild apks and superuser
@@ -281,21 +242,20 @@ PRODUCT_PACKAGES += \
 	ShuttleTools \
 	ApexLauncher \
 	CameraGoogle \
-        su \
   	openvpn \
 	liblzo \
-	Superuser 
-
-#	recovery-reboot - Not needed anymore because we can reboot into recovery from the powermenu
+	Superuser \
+	recovery-reboot 
 #	advancedwifilockfree - Not needed anymore because the wifi problems have been solved.
+#        su 
 
 # for bugmailer
-#ifneq ($(TARGET_BUILD_VARIANT),user)
-#	PRODUCT_PACKAGES += send_bug
-#	PRODUCT_COPY_FILES += \
-#		system/extras/bugmailer/bugmailer.sh:system/bin/bugmailer.sh \
-#		system/extras/bugmailer/send_bug:system/bin/send_bug
-#endif
+ifneq ($(TARGET_BUILD_VARIANT),user)
+	PRODUCT_PACKAGES += send_bug
+	PRODUCT_COPY_FILES += \
+		system/extras/bugmailer/bugmailer.sh:system/bin/bugmailer.sh \
+		system/extras/bugmailer/send_bug:system/bin/send_bug
+endif
 
 $(call inherit-product, frameworks/native/build/tablet-dalvik-heap.mk)
 #$(call inherit-product, vendor/nvidia/shuttle/device-vendor.mk)
