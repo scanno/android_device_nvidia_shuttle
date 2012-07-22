@@ -63,9 +63,9 @@ chmod -R 755 /system/etc
 chown 1010 /system/etc/wifi
 chgrp 1010 /system/etc/wifi
 chmod 777 /system/etc/wifi
-chmod 755 /system/etc/wifi/wpa_supplicant.conf
+chmod 777 /system/etc/wifi/wpa_supplicant.conf
 chmod 777 /data/misc/wifi
-touch /data/misc/wifi/ipconfig.txt
+#touch /data/misc/wifi/ipconfig.txt
 chmod 777 /data/misc/wifi/wpa_supplicant.conf
 chmod 6755 /system/bin/pppd                                                     
 #########################################################################
