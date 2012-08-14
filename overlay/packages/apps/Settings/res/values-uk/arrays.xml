@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
 **
 ** Copyright 2011 The Android Open Source Project
@@ -16,16 +16,31 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
- -->
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Display settings.  The delay in inactivity before the screen is turned off. These are shown in a list dialog. -->
+    <string-array name="screen_timeout_entries">
+        <item msgid="3342301044271143016">30 seconds</item>
+        <item msgid="8881760709354815449">5 minutes</item>
+        <item msgid="7589406073232279088">15 minutes</item>
+        <item msgid="7001195990902244174">30 minutes</item>
+        <item msgid="7489864775127957179">1 hour</item>
+        <item msgid="2314124409517439288">2 hours</item>
+    </string-array>
 
-<resources xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string-array name="screen_timeout_entries">
-    <item msgid="5314770629356662739">"15 секунд"</item>
-    <item msgid="8672738773876256432">"30 секунд"</item>
-    <item msgid="465923292941002466">"1 хвилина"</item>
-    <item msgid="7955177189296850016">"2 хвилини"</item>
-    <item msgid="1244255986255344525">"5 хвилин"</item>
-    <item msgid="294890536998091748">"10 хвилин"</item>
-  </string-array>
+    <!-- Do not translate. -->
+    <string-array name="screen_timeout_values" translatable="false">
+        <!-- Do not translate. -->
+        <item>30000</item>
+        <!-- Do not translate. -->
+        <item>300000</item>
+        <!-- Do not translate. -->
+        <item>900000</item>
+        <!-- Do not translate. -->
+        <item>1800000</item>
+        <!-- Do not translate. -->
+        <item>3600000</item>
+        <!-- Do not translate. -->
+        <item>7200000</item>
+    </string-array>
 </resources>

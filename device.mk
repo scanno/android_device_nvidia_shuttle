@@ -76,6 +76,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES := \
 	lights.shuttle
 
+# 3G
+PRODUCT_PACKAGES += rild 
+
 # Accelerometer
 PRODUCT_PACKAGES += \
 	sensors.shuttle 
@@ -116,9 +119,9 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/audio_policy.conf:system/etc/audio_policy.conf
 
 # Huawei 3G modem propietary files and PPP scripts
-#PRODUCT_PACKAGES += \
-#
-#	libhuaweigeneric-ril
+PRODUCT_PACKAGES += \
+	libhuaweigeneric-ril
+
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/libhuawei-ril.so:system/lib/libhuawei-ril.so \
    $(LOCAL_PATH)/files/etc/init.gprs-pppd:system/etc/init.gprs-pppd \
@@ -130,6 +133,7 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/ppp/ip-up-HUAWEI:system/etc/ppp/ip-up-HUAWEI \
    $(LOCAL_PATH)/files/etc/ppp/options.huawei:system/etc/ppp/options.huawei \
    $(LOCAL_PATH)/files/etc/ppp/pap-secrets:system/etc/ppp/pap-secrets \
+   $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/gprs \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/pppd-ril.options
 
 PRODUCT_PROPERTY_OVERRIDES := \
@@ -143,7 +147,9 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
    $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image \
    $(LOCAL_PATH)/files/su:system/xbin/su \
-   $(LOCAL_PATH)/files/busybox:system/xbin/busybox
+   $(LOCAL_PATH)/files/busybox:system/xbin/busybox 
+
+#   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
    
 # APNs list
 PRODUCT_COPY_FILES += \
@@ -153,8 +159,7 @@ PRODUCT_PACKAGES += \
 	shuttle_hdcp_keys
 
 # NVidia binary blobs
-$(call inherit-product, device/nvidia/shuttle/nvidia-blobs.mk)
- 
+$(call inherit-product, device/nvidia/shuttle/nvidia.mk)
 # Modules
 	
 # Bluetooth configuration files
@@ -208,8 +213,8 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
-	hwui.render_dirty_regions=false \
-    ro.sf.lcd_density=120 
+    hwui.render_dirty_regions=false \
+    ro.sf.lcd_density=120
 
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.secure=0 \

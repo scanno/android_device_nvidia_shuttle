@@ -20,42 +20,42 @@
 #define _AUDIOCHANNEL_H 1
 
 struct GsmAudioTunnel {
-	int running;					// If running
+    int running;                    // If running
 
-	// 3G voice modem
-	int fd;							// Voice data serial port handler
+    // 3G voice modem
+    int fd;                         // Voice data serial port handler
 
-	// Common properties
-	volatile int quit_flag;			// If threads should quit
-	unsigned int frame_size;					// Frame size
-	unsigned int sampling_rate;				// Sampling rate
-	unsigned int bits_per_sample;			// Bits per sample. valid values = 16/8
+    // Common properties
+    volatile int quit_flag;         // If threads should quit
+    unsigned int frame_size;        // Frame size
+    unsigned int sampling_rate;     // Sampling rate
+    unsigned int bits_per_sample;   // Bits per sample. valid values = 16/8
 
-	// Playback
-	void* play_strm; // Playback stream
-	volatile int play_thread_exited;// If play thread has exited
-	void* play_buf;					// Pointer to the playback buffer
-	unsigned int play_buf_count;				// Count of already stored samples in the playback buffer
-	
-	// Record
-	void* rec_strm;	// Record stream
-	volatile int rec_thread_exited;	// If record thread has exited
-	void* rec_buf;					// Pointer to the recording buffer
-	unsigned int rec_buf_count;				// Count of already stored samples in the recording buffer
+    // Playback
+    void* play_strm;                // Playback stream
+    volatile int play_thread_exited;// If play thread has exited
+    void* play_buf;                 // Pointer to the playback buffer
+    unsigned int play_buf_count;    // Count of already stored samples in the playback buffer
+
+    // Record
+    void* rec_strm;                 // Record stream
+    volatile int rec_thread_exited; // If record thread has exited
+    void* rec_buf;                  // Pointer to the recording buffer
+    unsigned int rec_buf_count;     // Count of already stored samples in the recording buffer
 };
 
-#define GSM_AUDIO_CHANNEL_STATIC_INIT { 0, 0, 0,0,0,0, 0,0,0,0 ,0,0,0,0}
+#define GSM_AUDIO_CHANNEL_STATIC_INIT { 0, 0, 0,0,0,0, 0,0,0,0 ,0,0,0,0 }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int gsm_audio_tunnel_start(struct GsmAudioTunnel *stream,
-	const char* gsmvoicechannel,
-	unsigned int sampling_rate,
-	unsigned int frame_size,
-	unsigned int bits_per_sample);
-	
+    const char* gsmvoicechannel,
+    unsigned int sampling_rate,
+    unsigned int frame_size,
+    unsigned int bits_per_sample);
+
 int gsm_audio_tunnel_stop(struct GsmAudioTunnel *stream);
 
 #ifdef __cplusplus

@@ -601,8 +601,7 @@ utf8_from_gsm7( cbytes_t  src,
     int  result  = 0;
 
     src += (septet_offset >> 3);
-    for ( ; septet_count > 0; septet_count-- )
-    {
+    for ( ; septet_count > 0; septet_count-- ) {
         int  c = (src[0] >> shift) & 0x7f;
         int  v;
 
@@ -639,8 +638,7 @@ utf8_from_gsm8( cbytes_t  src, int  count, bytes_t  utf8 )
     int  escaped = 0;
 
 
-    for ( ; count > 0; count-- )
-    {
+    for ( ; count > 0; count-- ) {
         int  c = *src++;
         int  v;
 
@@ -655,9 +653,7 @@ utf8_from_gsm8( cbytes_t  src, int  count, bytes_t  utf8 )
                 escaped = 1;
                 continue;
             }
-        }
-        else
-        {
+        } else {
             if (c >= 0x80) {
                 c       = 0x20;
                 escaped = 0;
@@ -690,8 +686,7 @@ ucs2_from_gsm7( bytes_t   ucs2,
     int                   escaped = 0;
     int                   result  = 0;
 
-    for ( ; septet_count > 0; septet_count-- )
-    {
+    for ( ; septet_count > 0; septet_count-- ) {
         unsigned  val  = (p[0] >> shift) & 0x7f;
 
         if (shift > 1)
@@ -702,11 +697,9 @@ ucs2_from_gsm7( bytes_t   ucs2,
 
             result += ucs2_write(ucs2, result, c);
             escaped = 0;
-        }
-        else if (val == GSM_7BITS_ESCAPE) {
+        } else if (val == GSM_7BITS_ESCAPE) {
             escaped = 1;
-        }
-        else {
+        } else {
             val = gsm7bits_extend_to_unicode[val];
             if (val == 0)
                 val = 0x20;
@@ -1031,9 +1024,7 @@ sim_adn_alpha_to_utf8( cbytes_t  alpha, cbytes_t  end, bytes_t  dst )
 
         alpha += 1;
         result = ucs2_to_utf8( alpha, (end-alpha)/2, dst );
-    }
-    else
-    {
+    } else {
         int  is_ucs2 = 0;
         int  len = 0, base = 0;
 
@@ -1069,8 +1060,7 @@ sim_adn_alpha_to_utf8( cbytes_t  alpha, cbytes_t  end, bytes_t  dst )
                     alpha  += count;
                 }
             }
-        }
-        else {
+        } else {
             result = utf8_from_gsm8(alpha, end-alpha, dst);
         }
     }
@@ -1161,5 +1151,5 @@ sim_adn_record_to_bytes( SimAdnRecord  rec, bytes_t   data, int  datalen )
         number += 1;
     }
     footer[0] = (strlen((const char*) number)+1)/2 + 1;
-	return 0;
+    return 0;
 }

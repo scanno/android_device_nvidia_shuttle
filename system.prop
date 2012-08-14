@@ -1,3 +1,4 @@
+
 #
 # system.prop for shuttle 
 #
@@ -5,10 +6,11 @@
 #
 # 3G Additions
 #
-picasso.3g=true
-rild.libpath=/system/lib/libhuawei-ril.so
-rild.libargs=-d /dev/ttyUSB2 
-ro.pad.features.modem=true 
+keyguard.no_require_sim=true
+rild.libpath=/system/lib/libhuaweigeneric-ril.so
+rild.libargs=-d /dev/ttyUSB2 -v /dev/ttyUSB1
+rild.ppp.tty=/dev/ttyUSB0
+ro.pad.features.modem=true
 
 #
 # Other additions

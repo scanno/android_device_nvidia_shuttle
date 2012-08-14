@@ -929,7 +929,7 @@ static void nmea_reader_parse( NmeaReader*  r )
         }
         gmtime_r( (time_t*) &r->fix.timestamp, &utc );
         p += snprintf(p, end-p, " time=%s", asctime( &utc ) );
-        D(temp);
+        D("%s",temp);
     }
 #endif
 }
@@ -1031,6 +1031,7 @@ static int epoll_deregister( int  epoll_fd, int  fd )
 static void gps_nmea_thread_cb( GpsState* state )
 {
 	D("%s()", __FUNCTION__ );
+	
 	state->callbacks.nmea_cb(state->reader.fix.timestamp,&state->nmea_buf[0],state->nmea_len);
 	GPS_STATE_UNLOCK_FIX(state);
 }
@@ -1038,6 +1039,7 @@ static void gps_nmea_thread_cb( GpsState* state )
 static void gps_nmea_cb( GpsState* state , const char* buf, int len)
 {
 	D("%s()", __FUNCTION__ );
+	
 	// Forward NMEA sentences ....
 	if (state->callbacks.nmea_cb) {
 	
@@ -1059,6 +1061,7 @@ static void gps_status_thread_cb( GpsState* state )
 static void gps_status_cb( GpsState* state , GpsStatusValue status)
 {
 	D("%s()", __FUNCTION__ );
+
 	if (state->callbacks.status_cb) {
 		GPS_STATE_LOCK_FIX(state);
 
@@ -1073,6 +1076,7 @@ static void gps_status_cb( GpsState* state , GpsStatusValue status)
 static void gps_set_capabilities_cb( GpsState* state , uint32_t caps)
 {
 	D("%s()", __FUNCTION__ );
+	
 	if (state->callbacks.set_capabilities_cb) {
 		state->callbacks.create_thread_cb("caps",(start_t)state->callbacks.set_capabilities_cb,(void*)caps);
 	}
@@ -1090,6 +1094,7 @@ static void gps_location_thread_cb( GpsState* state )
 static void gps_location_cb( GpsState* state )
 {
 	D("%s()", __FUNCTION__ );
+	
 	if (state->callbacks.location_cb) {
 		GPS_STATE_LOCK_FIX(state);
 		state->callbacks.create_thread_cb("fix",(start_t)gps_location_thread_cb,(void*)state);
@@ -1108,6 +1113,7 @@ static void gps_sv_status_thread_cb( GpsState* state )
 static void gps_sv_status_cb( GpsState* state )
 {
 	D("%s()", __FUNCTION__ );
+	
 	if (state->callbacks.sv_status_cb) {
 		GPS_STATE_LOCK_FIX(state);
 		state->callbacks.create_thread_cb("sv-status",(start_t)gps_sv_status_thread_cb,(void*)state);
@@ -1298,6 +1304,25 @@ static void* gps_state_thread( void* arg )
 
                     if (cmd == CMD_QUIT) {
                         D("gps thread quitting on demand");
+
+						/* Close GPS threads if running ... */
+                        if (gps_fd >= 0) {
+                            void *dummy;
+                            D("gps thread stopping");
+
+							state->init = STATE_INIT; /* Must be here, as timer thread will only quit with this */
+							pthread_join(state->tmr_thread, &dummy);
+							//pthread_destroy(state->tmr_thread);
+
+							gps_status_cb( state , GPS_STATUS_SESSION_END);
+
+							// Remove it from the monitoring set
+							epoll_deregister( epoll_fd, gps_fd );	
+							close_gps( gps_fd );
+							gps_fd = -1;
+							
+                        }
+						
                         goto Exit;
                     }
                     else if (cmd == CMD_START) {
@@ -1459,10 +1484,20 @@ static void gps_state_done( GpsState*  s )
 	pthread_join(s->thread, &dummy);
 	//pthread_destroy(s->thread);
 	
-    /* Timer thread depends on this state check */
+	/* At this point, there will probably be a pending callback 
+	  gps_status_cb() posted waiting to be executed... We must not
+	  destroy the semaphore until we are sure no pending callbacks */
+	
+	/* Get the lock... No callback pending inside it */
+	GPS_STATE_LOCK_FIX(s);
+	
+    /* Timer thread depends on this state check - And also no more callbacks will be allowed */
     s->init = STATE_QUIT;
     s->min_interval = 1000;
 
+	/* Release lock. No more callbacks */
+	GPS_STATE_UNLOCK_FIX(s);
+	
     // close the control socket pair
     close( s->control[0] ); s->control[0] = -1;
     close( s->control[1] ); s->control[1] = -1;

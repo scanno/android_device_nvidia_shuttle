@@ -82,7 +82,7 @@ void at_close(void);
  */
 void at_set_timeout_msec(int timeout);
 
-/* 
+/*
  * This callback is invoked on the command thread.
  * You should reset or handshake here to avoid getting out of sync.
  */
