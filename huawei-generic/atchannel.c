@@ -540,14 +540,14 @@ static const char *readline(void)
         if (!(pfds[0].revents & POLLIN))
             continue;
 
-        do
+        do {
             /* The size argument should be synchronized to the ditch buffer
              * condition above.
              */
             count = read(ac->fd, p_read,
                          MAX_AT_RESPONSE - (p_read - ac->ATBuffer) - 2);
 
-        while (count < 0 && errno == EINTR);
+        } while (count < 0 && errno == EINTR);
 
         if (count > 0) {
             AT_DUMP( "<< ", p_read, count );
@@ -572,7 +572,7 @@ static const char *readline(void)
                 ALOGD("%s() atchannel: EOF reached.", __func__);
             else
                 ALOGD("%s() atchannel: read error %s", __func__, strerror(errno));
-
+			
             return NULL;
         }
     }
@@ -936,73 +936,72 @@ static int at_send_command_full_nolock (const char *command, ATCommandType type,
                     long long timeoutMsec, ATResponse **pp_outResponse)
 {
     int err = AT_NOERROR;
+	struct atcontext *ac = getAtContext();
 
-    struct atcontext *ac = getAtContext();
+	/* Default to NULL, to allow caller to free securely even if
+	 * no response will be set below */
+	if (pp_outResponse != NULL)
+		*pp_outResponse = NULL;
 
-    /* Default to NULL, to allow caller to free securely even if
-     * no response will be set below */
-    if (pp_outResponse != NULL)
-        *pp_outResponse = NULL;
+	/* FIXME This is to prevent future problems due to calls from other threads; should be revised. */
+	while (pthread_mutex_trylock(&ac->requestmutex) == EBUSY)
+		pthread_cond_wait(&ac->requestcond, &ac->commandmutex);
 
-    /* FIXME This is to prevent future problems due to calls from other threads; should be revised. */
-    while (pthread_mutex_trylock(&ac->requestmutex) == EBUSY)
-        pthread_cond_wait(&ac->requestcond, &ac->commandmutex);
+	if(ac->response != NULL) {
+		err = AT_ERROR_COMMAND_PENDING;
+		goto finally;
+	}
 
-    if(ac->response != NULL) {
-        err = AT_ERROR_COMMAND_PENDING;
-        goto finally;
-    }
+	ac->type = type;
+	ac->responsePrefix = responsePrefix;
+	ac->smsPDU = smspdu;
+	ac->response = at_response_new();
+	if (ac->response == NULL) {
+		err = AT_ERROR_MEMORY_ALLOCATION;
+		goto finally;
+	}
 
-    ac->type = type;
-    ac->responsePrefix = responsePrefix;
-    ac->smsPDU = smspdu;
-    ac->response = at_response_new();
-    if (ac->response == NULL) {
-        err = AT_ERROR_MEMORY_ALLOCATION;
-        goto finally;
-    }
+	err = writeline (command);
 
-    err = writeline (command);
+	if (err != AT_NOERROR)
+		goto finally;
 
-    if (err != AT_NOERROR)
-        goto finally;
+	while (ac->response->finalResponse == NULL && ac->readerClosed == 0) {
+		if (timeoutMsec != 0)
+			err = pthread_cond_timeout_np(&ac->commandcond, &ac->commandmutex, timeoutMsec);
+		else
+			err = pthread_cond_wait(&ac->commandcond, &ac->commandmutex);
 
-    while (ac->response->finalResponse == NULL && ac->readerClosed == 0) {
-        if (timeoutMsec != 0)
-            err = pthread_cond_timeout_np(&ac->commandcond, &ac->commandmutex, timeoutMsec);
-        else
-            err = pthread_cond_wait(&ac->commandcond, &ac->commandmutex);
+		if (err == ETIMEDOUT) {
+			err = AT_ERROR_TIMEOUT;
+			goto finally;
+		}
+	}
 
-        if (err == ETIMEDOUT) {
-            err = AT_ERROR_TIMEOUT;
-            goto finally;
-        }
-        }
+	if (ac->response->success == 0) {
+		err = at_get_error(ac->response);
+	}
 
-    if (ac->response->success == 0) {
-        err = at_get_error(ac->response);
-    }
+	if (pp_outResponse == NULL)
+		at_response_free(ac->response);
+	else {
+		/* Line reader stores intermediate responses in reverse order. */
+		reverseIntermediates(ac->response);
+		*pp_outResponse = ac->response;
+	}
 
-    if (pp_outResponse == NULL)
-        at_response_free(ac->response);
-    else {
-        /* Line reader stores intermediate responses in reverse order. */
-        reverseIntermediates(ac->response);
-        *pp_outResponse = ac->response;
-    }
+	ac->response = NULL;
 
-    ac->response = NULL;
-
-    if(ac->readerClosed > 0) {
-        err = AT_ERROR_CHANNEL_CLOSED;
-        goto finally;
-    }
+	if(ac->readerClosed > 0) {
+		err = AT_ERROR_CHANNEL_CLOSED;
+		goto finally;
+	}
 
 finally:
-    clearPendingCommand();
+	clearPendingCommand();
 
-    pthread_cond_broadcast(&ac->requestcond);
-    pthread_mutex_unlock(&ac->requestmutex);
+	pthread_cond_broadcast(&ac->requestcond);
+	pthread_mutex_unlock(&ac->requestmutex);
 
     return err;
 }

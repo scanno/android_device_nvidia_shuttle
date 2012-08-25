@@ -11,6 +11,7 @@ LOCAL_SRC_FILES := \
     gsm.c \
     huaweigeneric-ril.c \
     misc.c \
+	net-utils.c \
     requestdatahandler.c \
     sms.c \
     sms_gsm.c \
