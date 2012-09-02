@@ -16,6 +16,9 @@
  ** limitations under the License.
  */
 
+//#define ORG_DIAL 0
+//#define BYPASS_AUDIO_CHECK 1
+
 /*
 AT^CURC=0
 ATQ0V1
@@ -165,7 +168,7 @@ static int getCardStatus(RIL_CardStatus_v6 **pp_card_status);
 static void freeCardStatus(RIL_CardStatus_v6 *p_card_status);
 static void onDataCallListChanged(void *param);
 static int killConn(const char * cid);
-static int wait_for_property(const char *name, const char *desired_value, int maxwait);
+static int wait_for_property(const char *name, const char *desired_value, int maxwait, int allowempty);
 static void checkMessageStorageReady(void *p);
 static void onSIMReady(void *p);
 static void pollSIMState(void *param);
@@ -186,6 +189,12 @@ static const RIL_RadioFunctions s_callbacks = {
 static char* rndis_iface_dev = "/dev/ttyUSB0";
 static char* ppp_iface_dev   = "/dev/ttyUSB0";
 static int using_rndis = 0;
+
+/* Last call index status */
+static int lastCallIdx = 0;
+
+/* Last call fail cause */
+static int lastCallFailCause = CALL_FAIL_NORMAL;
 
 #define RNDIS_IFACE "rmnet0"
 #define PPP_IFACE   "ppp0"
@@ -244,6 +253,8 @@ static RequestQueue *s_requestQueues[] = {
 static struct GsmAudioTunnel sAudioChannel = GSM_AUDIO_CHANNEL_STATIC_INIT;
 static char  sAudioDevice[64] = {0};
 
+static int audioTunnelMuted = 0; // If audio tunnel is muted
+
 /* Starts the audio tunnel channel */
 static void startAudioTunnel(void* param)
 {
@@ -253,16 +264,16 @@ static void startAudioTunnel(void* param)
     int voice_disabled = 0, sampling_rate = 8000,
         bits_per_sample = 16, framesize_ms = 20;
 
-    if (sAudioChannel.running)
+    if (gsm_audio_tunnel_running(&sAudioChannel))
         return;
 
-    // Enable voice function
+    // Enable voice function - Some firmwares fail this command, but 
+	// nevertheless, it works. Leave validation for the next one.
     err = at_send_command("AT^CVOICE=0");
-    if (err != AT_NOERROR)
-        goto error;
 
-    // Check status.
-    err = at_send_command_singleline("AT^CVOICE=?", "^CVOICE:", &atResponse);
+#ifndef BYPASS_AUDIO_CHECK
+    // Check status - This is the check that matters!
+    err = at_send_command_singleline("AT^CVOICE?", "^CVOICE:", &atResponse);
     if (err != AT_NOERROR)
         goto error;
 
@@ -273,6 +284,9 @@ static void startAudioTunnel(void* param)
     err = at_tok_nextint(&line, &voice_disabled);
     if (err < 0) goto error;
 
+	// Check if voice was really enabled
+	if (voice_disabled != 0) goto error;
+
     err = at_tok_nextint(&line, &sampling_rate);
     if (err < 0) goto error;
 
@@ -281,12 +295,20 @@ static void startAudioTunnel(void* param)
 
     err = at_tok_nextint(&line, &framesize_ms);
     if (err < 0) goto error;
-
+#else
+	sampling_rate = 8000;
+	bits_per_sample = 16;
+	framesize_ms = 20;
+#endif
+	
     /* Start the audio channel */
     err = gsm_audio_tunnel_start(&sAudioChannel,sAudioDevice,
                 sampling_rate, (sampling_rate * framesize_ms) / 1000, bits_per_sample );
     if (err)
         goto error;
+
+	// Mute/Ummute audioTunnel as requested
+	gsm_audio_tunnel_mute(&sAudioChannel,audioTunnelMuted);
 
 	ALOGD("Audio Tunnel enabled");
     at_response_free(atResponse);
@@ -302,13 +324,26 @@ error:
 /* Stops the audio tunnel channel */
 static void stopAudioTunnel(void* param)
 {
-    if (!sAudioChannel.running)
+	if (!gsm_audio_tunnel_running(&sAudioChannel))
         return;
 
-    // Stop the audio tunnel
+	// Stop the audio tunnel
     gsm_audio_tunnel_stop(&sAudioChannel);
 
     ALOGD("Audio Tunnel disabled");
+}
+
+static void muteAudioTunnel(int muteit)
+{
+	audioTunnelMuted = muteit;
+		
+    ALOGD("Audio Tunnel %smuted",muteit?"":"un");
+
+	if (!gsm_audio_tunnel_running(&sAudioChannel))
+        return;
+
+	// Mute/Ummute audioTunnel if requested
+	gsm_audio_tunnel_mute(&sAudioChannel,audioTunnelMuted);
 }
 
 /**
@@ -924,6 +959,17 @@ static void requestGetCurrentCalls(void *data, size_t datalen, RIL_Token t)
     RIL_onRequestComplete(t, RIL_E_SUCCESS, pp_calls,
             countValidCalls * sizeof (RIL_Call *));
 
+	/* Start/stop audio tunnel if a valid voice call is detected -
+	   This will restart the audiotunnel when we preventively shut it 
+	   down after user hangs call (but should be restarted if in conference
+	   Stopping should be handled by the connection end notification, but,
+	   just in case, we also handle it here*/
+	if (countValidCalls) {
+		startAudioTunnel(NULL);
+	} else {
+		stopAudioTunnel(NULL);
+	}
+			
     at_response_free(atResponse);
 
     if (needRepoll) {
@@ -992,23 +1038,25 @@ error:
 
 
 /* wait for a propertyvalue change */
-static int wait_for_property(const char *name, const char *desired_value, int maxwait)
+static int wait_for_property(const char *name, const char *desired_value, int maxwait, int allowempty)
 {
     char value[PROPERTY_VALUE_MAX] = {'\0'};
-    int maxnaps = maxwait / 1;
+    int maxnaps = maxwait;
 
     if (maxnaps < 1) {
         maxnaps = 1;
     }
 
     while (maxnaps-- > 0) {
-        usleep(1000000);
         if (property_get(name, value, NULL)) {
-            if (desired_value == NULL ||
-                    strcmp(value, desired_value) == 0) {
-                return 0;
-            }
+			if (allowempty || (!allowempty && value[0]!=0)) {
+				if (desired_value == NULL ||
+						strcmp(value, desired_value) == 0) {
+					return 0;
+				}
+			}
         }
+		sleep(1);
     }
     return -1; /* failure */
 }
@@ -1027,7 +1075,7 @@ static int tcdrain (int fd)
 
 #ifdef ORG_DIAL
 /* Write an string to the modem */
-static int dial_at_modem(const char* cmd)
+static int dial_at_modem(const char* cmd, int skipanswerwait)
 {
 	int i, n, ret;
 	int fd = -1;
@@ -1055,6 +1103,9 @@ static int dial_at_modem(const char* cmd)
 		ios.c_cc[VMIN] = 0; /* Minimum number of chars returned: 0*/ 
         tcsetattr( fd, TCSANOW, &ios );
     }
+	
+	// Discard all pending data */
+	tcflush(fd, TCIOFLUSH);
 	
 	// If hangup sequence, wait a bit...
 	if (!strcmp(cmd,"+++")) {
@@ -1091,13 +1142,19 @@ static int dial_at_modem(const char* cmd)
 		close(fd);
 		return 0;
 	}
+
+	// If we must skip waiting for an answer
+	if (skipanswerwait) {
+		close(fd);
+		return 0;
+	}
 	
 	// Read answer with timeout
 	ALOGD("dial_at_modem: waiting for response");
 	do {
 	
 		/* Receive a line with timeout */
-		int waitc = 10;
+		int waitc = 5;
 		n = 0;
 		do {
 			ret = read(fd, &buf[n], 1);
@@ -1122,7 +1179,7 @@ static int dial_at_modem(const char* cmd)
 				sleep(1);  
 			} else {
 				/* Something received, restart timeout */
-				waitc = 10;
+				waitc = 5;
 			}
 			
 			// Count of read chars
@@ -1166,8 +1223,8 @@ static int killConn(const char* cididx)
 	
 #ifdef ORG_DIAL
 	/* Hang up modem, if needed */
-	dial_at_modem("+++");
-	dial_at_modem("ATH\r\n");
+	dial_at_modem("+++",1);
+	dial_at_modem("ATH\r\n",1);
 #endif
 	
 	/* Bring down all interfaces */
@@ -1192,11 +1249,14 @@ static int setupPPP(RIL_Token t,const char* ctxid,const char* user,const char* p
 	int ctr = 10;
 
     RIL_Data_Call_Response_v6 responses;
+	char ppp_ifname[PROPERTY_VALUE_MAX] = {'\0'};
     char ppp_local_ip[PROPERTY_VALUE_MAX] = {'\0'};
     char ppp_dns1[PROPERTY_VALUE_MAX] = {'\0'};
     char ppp_dns2[PROPERTY_VALUE_MAX] = {'\0'};
 	char ppp_dnses[(PROPERTY_VALUE_MAX * 2) + 3] = {'\0'};
     char ppp_gw[PROPERTY_VALUE_MAX] = {'\0'};
+	char pbuf[32] = {'\0'};
+
 
 	ALOGD("Trying to setup PPP connnection...");
 	
@@ -1206,7 +1266,7 @@ static int setupPPP(RIL_Token t,const char* ctxid,const char* user,const char* p
 	
     /* Enter data state using context #1 as PPP */
 	asprintf(&cmd,"AT+CGDATA=\"PPP\",%s\r\n",ctxid);
-    err = dial_at_modem(cmd);
+    err = dial_at_modem(cmd,0);
 	free(cmd);
 
 	/* If failure, fall back to Start data on PDP context 1 */	
@@ -1221,7 +1281,11 @@ static int setupPPP(RIL_Token t,const char* ctxid,const char* user,const char* p
 	/* Dial data */
 	err = at_send_command("ATD*99***%s#",ctxid);
 	if (err != AT_NOERROR) {
-		return -1;
+		/* If failed, retry just with data context activation */
+		err = at_send_command("AT+CGDATA=\"PPP\",%s",ctxid);
+		if (err != AT_NOERROR) {
+			return -1;
+		}
 	}
 	
 	/* Wait for the modem to finish */
@@ -1241,40 +1305,38 @@ static int setupPPP(RIL_Token t,const char* ctxid,const char* user,const char* p
 		pass == NULL || pass[0] == 0 ) {
 		
 		fmt = "/system/bin/pppd %s "
-		"115200 mru 1280 "
-		"linkname ril%s "	
+		"115200 "
+		"crtscts modem "
+		"linkname ril%s "
 		"noauth "
-		"nodetach debug defaultroute usepeerdns "
-		"connect-delay 5000 "
-		"novj novjccomp noipdefault ipcp-accept-local "
-		"ipcp-accept-remote "
-		"dump "
+		"user %s password %s "		
+		"nodetach defaultroute usepeerdns noipdefault "
+		"novj novjccomp nobsdcomp "
+		"ipcp-accept-remote ipcp-accept-local "
+		"dump debug "
 		"lcp-echo-failure 0 lcp-echo-interval 0 ipcp-max-configure 30 "
 		"ipcp-max-failure 30 ipcp-max-terminate 10";
 		
 	} else {
 	
 		fmt = "/system/bin/pppd %s "
-		"115200 mru 1280 "
+		"115200 "
+		"crtscts modem "
 		"linkname ril%s "
 		"user %s password %s "
-		"nodetach debug defaultroute usepeerdns "
-		"connect-delay 5000 "
-		"novj novjccomp noipdefault ipcp-accept-local "
-		"ipcp-accept-remote "
-		"dump "
+		"nodetach defaultroute usepeerdns noipdefault "
+		"novj novjccomp nobsdcomp "
+		"ipcp-accept-remote ipcp-accept-local "
+		"dump debug "
 		"lcp-echo-failure 0 lcp-echo-interval 0 ipcp-max-configure 30 "
 		"ipcp-max-failure 30 ipcp-max-terminate 10";
 	}
 	
-	asprintf(&cmd,fmt,ppp_iface_dev,ctxid,user,pass);
+	asprintf(&cmd,fmt,ppp_iface_dev,ctxid, ((user && user[0])? user: "guest"), ((pass && pass[0])? pass: "guest") );
 	
 	ALOGD("Starting pppd w/command line: '%s'",cmd);
     system(cmd);
 	free(cmd);
-	
-	// Allow time for ip-up to complete
-	sleep(10); 
 	
 #if 0
 	// Wait until network interface is up and running - Prefer the property
@@ -1285,8 +1347,9 @@ static int setupPPP(RIL_Token t,const char* ctxid,const char* user,const char* p
 	}
 	
 	ALOGD("Waiting until net ifc %s is up", PPP_IFACE);
-	ctr = 0;
+	ctr = 20;
 	do {
+		sleep(1); // wait one second...
 		flags = 0;
 		ifc_get_info(PPP_IFACE, &addr, &mask, &flags);
 	} while (--ctr > 0 && !(flags & IFF_UP));
@@ -1304,28 +1367,39 @@ static int setupPPP(RIL_Token t,const char* ctxid,const char* user,const char* p
 		((unsigned char*)&addr)[3]);
 	
 #else
-	// Wait until ppp ip-up script has executed...
-    if (wait_for_property("net." PPP_IFACE ".local-ip", NULL, 10) < 0) {
-		ALOGE("Timeout waiting net." PPP_IFACE ".local-ip - giving up!\n");
+	// Wait until ppp ip-up script has completely executed...
+	sprintf(pbuf,"net.ril%s.if",ctxid);
+    if (wait_for_property(pbuf, NULL, 20, 0) < 0) {
+		ALOGE("Timeout waiting %s - giving up!\n",pbuf);
         return -1;
     }
-
-    property_get("net." PPP_IFACE ".local-ip", ppp_local_ip, NULL);
+	property_get(pbuf, ppp_ifname, NULL);
+	
+	// Get local IP
+	sprintf(pbuf,"net.ril%s.local-ip",ctxid);
+    property_get(pbuf, ppp_local_ip, NULL);
 #endif
-		
-    property_get("net.dns1", ppp_dns1, NULL);
-    property_get("net.dns2", ppp_dns2, NULL);
-    property_get("net." PPP_IFACE ".gw", ppp_gw, NULL);
+
+	sprintf(pbuf,"net.ril%s.dns1",ctxid);	
+    property_get(pbuf, ppp_dns1, NULL);
+
+	sprintf(pbuf,"net.ril%s.dns2",ctxid);	
+    property_get(pbuf, ppp_dns2, NULL);
+
+	sprintf(pbuf,"net.ril%s.gw",ctxid);	
+    property_get(pbuf, ppp_gw, NULL);
+	
     sprintf(ppp_dnses, "%s %s", ppp_dns1, ppp_dns2);
 
-	ALOGI("Got local-ip: %s\n", ppp_local_ip);
+	ALOGI("Got ifname: %s, local-ip: %s, dns1: %s, dns2: %s, gw: %s\n",
+		ppp_ifname, ppp_local_ip, ppp_dns1, ppp_dns2, ppp_gw);
 
     responses.status = 0;
     responses.suggestedRetryTime = -1;
-    responses.cid = 1;
+    responses.cid = (ctxid[0] - '0');
     responses.active = 2;
     responses.type = (char*)"PPP";
-    responses.ifname 	= (char*)PPP_IFACE;
+    responses.ifname 	= ppp_ifname;
     responses.addresses = ppp_local_ip;
     responses.dnses 	= ppp_dnses;
     responses.gateways 	= ppp_gw;
@@ -1515,29 +1589,30 @@ static void requestSetupDefaultPDP(void *data, size_t datalen, RIL_Token t)
     D("requesting data connection to APN '%s'\n", apn);
 
     // Make sure there is no existing connection
-    killConn("1");
+    killConn(ctxid);
 
-    /* Set required QoS params to default */
-    err = at_send_command("AT+CGQREQ=1");
-
-    /* Set minimum QoS params to default */
-    err = at_send_command("AT+CGQMIN=1");
 
     /* packet-domain event reporting */
     err = at_send_command("AT+CGEREP=1,0");
 
-	/* Attach to GPRS network */
-	err = at_send_command("AT+CGATT=1");
-	
     /* Define the PDP context #1*/
     err = at_send_command("AT+CGDCONT=%s,\"IP\",\"%s\"",ctxid, apn);
 
+    /* Set required QoS params to default */
+    err = at_send_command("AT+CGQREQ=%s",ctxid);
+
+    /* Set minimum QoS params to default */
+    err = at_send_command("AT+CGQMIN=%s",ctxid);
+
+	/* Attach to GPRS network */
+	err = at_send_command("AT+CGATT=1");
+	
 	if (use_ppp) {
-		if (setupPPP(t,"1",user,pass) < 0) {
+		if (setupPPP(t,ctxid,user,pass) < 0) {
 			goto error;
 		}
 	} else {
-		if (setupNDIS(t,"1") < 0) {
+		if (setupNDIS(t,ctxid) < 0) {
 			goto error;
 		}
 	}
@@ -4544,10 +4619,97 @@ static void unsolicitedNitzTime(const char * s)
 
 error:
     ALOGE("Invalid NITZ line %s\n", s);
+	free(line);
 }
 
-/* Last call fail cause */
-static int lastCallFailCause = CALL_FAIL_NORMAL;
+/* Unsolicited call start status */
+static void unsolicitedCONN(const char * s)
+{
+    int err;
+	int call_id;
+	int type;
+    char * line = strdup(s);
+
+    err = at_tok_start(&line);
+    if (err < 0) goto error;
+
+    err = at_tok_nextint(&line, &call_id);
+    if (err < 0) goto error;
+
+    err = at_tok_nextint(&line, &type);
+    if (err < 0) goto error;
+
+	ALOGD("Call started: ID:%d, type:%d", call_id, type);
+
+	/* Store last call index */
+	lastCallIdx = call_id;
+	
+    free(line);
+    return;
+
+error:
+    ALOGI("Error getting Call Start status");
+    free(line);
+    return;
+}
+
+/* Unsolicited call start status */
+static void unsolicitedORIG(const char * s)
+{
+    int err;
+	int call_id;
+	int type;
+    char * line = strdup(s);
+
+    err = at_tok_start(&line);
+    if (err < 0) goto error;
+
+    err = at_tok_nextint(&line, &call_id);
+    if (err < 0) goto error;
+
+    err = at_tok_nextint(&line, &type);
+    if (err < 0) goto error;
+
+	ALOGD("Call originated: ID:%d, type:%d", call_id, type);
+
+	/* Store last call index */
+	lastCallIdx = call_id;
+	
+    free(line);
+    return;
+
+error:
+    ALOGI("Error getting Call Originated status");
+    free(line);
+    return;
+}
+
+/* Unsolicited call conference status */
+static void unsolicitedCONF(const char * s)
+{
+    int err;
+	int call_id;
+    char * line = strdup(s);
+
+    err = at_tok_start(&line);
+    if (err < 0) goto error;
+
+    err = at_tok_nextint(&line, &call_id);
+    if (err < 0) goto error;
+
+	ALOGD("Call conference started: ID:%d", call_id);
+
+	/* Store last call index */
+	lastCallIdx = call_id;
+	
+    free(line);
+    return;
+
+error:
+    ALOGI("Error getting Call Conference Start status");
+    free(line);
+    return;
+}
 
 /* Unsolicited call end status */
 static void unsolicitedCEND(const char * s)
@@ -5277,7 +5439,9 @@ void requestReportStkServiceIsRunning(RIL_Token t)
     RIL_onRequestComplete(t, RIL_E_SUCCESS, NULL, 0);
 }
 
-
+/**
+ * RIL_REQUEST_DIAL
+ */
 static void requestDial(void *data, size_t datalen, RIL_Token t)
 {
     RIL_Dial *p_dial;
@@ -5313,6 +5477,11 @@ static void requestHangup(void *data, size_t datalen, RIL_Token t)
 
     p_line = (int *)data;
 
+	/* Just in case, stop the audio tunnel now. We need to stop if before the modem
+       stops streaming audio. If another call is being held, it will be restarted a
+       little bit later by the ccurrent call list callback */
+	stopAudioTunnel(NULL);
+	
     // 3GPP 22.030 6.5.5
     // "Releases a specific active call X"
     ret = at_send_command("AT+CHLD=1%d", p_line[0]);
@@ -5324,6 +5493,11 @@ static void requestHangup(void *data, size_t datalen, RIL_Token t)
 
 static void requestHangupWaitingOrBackground(RIL_Token t)
 {
+	/* Just in case, stop the audio tunnel now. We need to stop if before the modem
+       stops streaming audio. If another call is being hold, it will be restarted a
+       little bit later by the ccurrent call list callback */
+	stopAudioTunnel(NULL);
+
     // 3GPP 22.030 6.5.5
     // "Releases all held calls or sets User Determined User Busy
     //  (UDUB) for a waiting call."
@@ -5337,6 +5511,11 @@ static void requestHangupWaitingOrBackground(RIL_Token t)
 
 static void requestHangupForegroundResumeBackground(RIL_Token t)
 {
+	/* Just in case, stop the audio tunnel now. We need to stop if before the modem
+       stops streaming audio. If another call is being hold, it will be restarted a
+       little bit later */
+	stopAudioTunnel(NULL);
+
     // 3GPP 22.030 6.5.5
     // "Releases all active calls (if any exist) and accepts
     //  the other (held or waiting) call."
@@ -5350,6 +5529,11 @@ static void requestHangupForegroundResumeBackground(RIL_Token t)
 
 static void requestSwitchWaitingOrHoldingAndActive(RIL_Token t)
 {
+	/* Just in case, stop the audio tunnel now. We need to stop if before the modem
+       stops streaming audio. If another call is being hold, it will be restarted a
+       little bit later */
+	stopAudioTunnel(NULL);
+
     // 3GPP 22.030 6.5.5
     // "Places all active calls (if any exist) on hold and accepts
     //  the other (held or waiting) call."
@@ -5363,10 +5547,11 @@ static void requestSwitchWaitingOrHoldingAndActive(RIL_Token t)
 
 static void requestAnswer(RIL_Token t)
 {
-    at_send_command("ATA");
-
-    /* Switch to audio from USB1 */
-    at_send_command("AT^DDSETEX=2");
+	/* Answer call */
+	at_send_command("ATA");
+	
+	/* Switch to audio from USB1 */
+	at_send_command("AT^DDSETEX=2");
 	
     /* success or failure is ignored by the upper layer here.
        it will call GET_CURRENT_CALLS and determine success that way */
@@ -5414,16 +5599,22 @@ static void requestSeparateConnection(void * data, size_t datalen, RIL_Token t)
     }
 }
 
-
+static int wasMuted = 0;
 static void requestSetMute(void *data, size_t datalen, RIL_Token t)
 {
     int err;
     assert (datalen >= sizeof(int *));
 	int mute = ((int*)data)[0];
-
+	
+	/* Store mute status */
+	wasMuted = mute;
+	
     /* mute - Don't consider it an error if it fails, as we are using a Software loopback for audio data */
     err = at_send_command("AT+CMUT=%d", mute);
 
+	/* Update the audio tunnel mute status */
+	muteAudioTunnel(wasMuted);
+	
     RIL_onRequestComplete(t, RIL_E_SUCCESS, NULL, 0);
     return;
 }
@@ -5436,8 +5627,8 @@ static void requestGetMute(RIL_Token t)
     int response[1];
     char *line;
 
+	/* If we fail, return a cached version of it */
     err = at_send_command_singleline("AT+CMUT?", "+CMUT:", &atResponse);
-
     if (err != AT_NOERROR)
         goto error;
 
@@ -5455,8 +5646,10 @@ static void requestGetMute(RIL_Token t)
     return;
 
 error:
-    ALOGE("ERROR: requestGetMute failed");
-    RIL_onRequestComplete(t, RIL_E_GENERIC_FAILURE, NULL, 0);
+    ALOGE("ERROR: requestGetMute failed - Returned cached result");
+	
+	response[0] = wasMuted;
+    RIL_onRequestComplete(t, RIL_E_SUCCESS, response, sizeof(char*));
     at_response_free(atResponse);
 }
 
@@ -5466,7 +5659,14 @@ static void requestDTMF(void * data, size_t datalen, RIL_Token t)
     int err = 0;
     char c = ((char *)data)[0];
 
-    err = at_send_command("AT+VTS=%c", (int)c);
+    /* Start DTMF generation for 250ms */
+    err = at_send_command("AT^DTMF=%d,%c", lastCallIdx, (int)c); /* 1=call idx */
+	
+	/* If failed, try the older method */
+    if (err != AT_NOERROR) {
+		err = at_send_command("AT+VTS=%c", (int)c);
+	}
+	
     if (err != AT_NOERROR) {
         RIL_onRequestComplete(t, RIL_E_GENERIC_FAILURE, NULL, 0);
     } else {
@@ -5494,7 +5694,6 @@ error:
 
 }
 
-
 static void requestDtmfStart(void *data, size_t datalen, RIL_Token t)
 {
     int err;
@@ -5504,8 +5703,14 @@ static void requestDtmfStart(void *data, size_t datalen, RIL_Token t)
 
     c = ((char *)data)[0];
 
-    /* Start DTMF generation fro 250ms */
-    err = at_send_command("AT^DTMF=0,%c", (int)c);
+    /* Start DTMF generation for 250ms */
+    err = at_send_command("AT^DTMF=%d,%c", lastCallIdx, (int)c); /* 1=call idx */
+	
+	/* If failed, try the older method */
+    if (err != AT_NOERROR) {
+		err = at_send_command("AT+VTS=%c", (int)c);
+	}
+	
     if (err != AT_NOERROR)
         goto error;
 
@@ -6796,25 +7001,30 @@ static void onUnsolicited (const char *s, const char *sms_pdu)
 			|| strStartsWith(s,"^CONN:")
 			|| strStartsWith(s,"^CEND:")
           ) {
-		  
+
+		/* Start/stop audio tunnel if needed when a successful connection is done */
+		if (   strStartsWith(s,"^ORIG:")) {
+			enqueueRILEvent(startAudioTunnel, NULL, NULL);
+			unsolicitedORIG(s);
+		} else 
+		if (   strStartsWith(s,"^CONF:")) {
+			enqueueRILEvent(startAudioTunnel, NULL, NULL);
+			unsolicitedCONF(s);
+		} else 
+		if (   strStartsWith(s,"^CONN:")) {
+			enqueueRILEvent(startAudioTunnel, NULL, NULL);
+			unsolicitedCONN(s);
+		} else 
+		if (strStartsWith(s,"^CEND:")) {
+			/* This is the only fast way to detect when call was hang by the callee */
+			enqueueRILEvent(stopAudioTunnel, NULL, NULL);
+			unsolicitedCEND(s);
+		}
+		
 		RIL_onUnsolicitedResponse (
                 RIL_UNSOL_RESPONSE_CALL_STATE_CHANGED,
                 NULL, 0);
         enqueueRILEvent(onDataCallListChanged, NULL, NULL);
-		
-		/* Start/stop audio tunnel */
-		if (   strStartsWith(s,"+CRING:")
-		    || strStartsWith(s,"RING")
-			|| strStartsWith(s,"^ORIG:")
-			|| strStartsWith(s,"^CONF:")
-			|| strStartsWith(s,"^CONN:")
-			) {
-			enqueueRILEvent(startAudioTunnel, NULL, NULL);
-		} else 
-		if (strStartsWith(s,"^CEND:")) {
-			unsolicitedCEND(s);
-			enqueueRILEvent(stopAudioTunnel, NULL, NULL);
-		}
 
 	/* Data call status/start/end */
     } else if (strStartsWith(s,"^DCONN:") 

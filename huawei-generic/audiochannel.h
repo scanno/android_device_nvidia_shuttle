@@ -1,6 +1,6 @@
 /*
 **
-** Copyright (C) 2010 Eduardo José Tagle <ejtagle@tutopia.com>
+** Copyright (C) 2012 Eduardo José Tagle <ejtagle@tutopia.com>
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -14,37 +14,40 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 **
-** Author: Christian Bejram <christian.bejram@stericsson.com>
 */
 #ifndef _AUDIOCHANNEL_H
 #define _AUDIOCHANNEL_H 1
 
+#include "audioqueue.h"
+#include <pthread.h>
+
 struct GsmAudioTunnel {
-    int running;                    // If running
 
     // 3G voice modem
     int fd;                         // Voice data serial port handler
 
     // Common properties
-    volatile int quit_flag;         // If threads should quit
     unsigned int frame_size;        // Frame size
     unsigned int sampling_rate;     // Sampling rate
     unsigned int bits_per_sample;   // Bits per sample. valid values = 16/8
-
+	pthread_t modem_t;				// 3G modem playback/record thread
+	int ismuted;					// If audio record is muted
+	
     // Playback
     void* play_strm;                // Playback stream
     volatile int play_thread_exited;// If play thread has exited
     void* play_buf;                 // Pointer to the playback buffer
-    unsigned int play_buf_count;    // Count of already stored samples in the playback buffer
-
+	struct AudioQueue play_q;		// Audio playback queue
+	
     // Record
     void* rec_strm;                 // Record stream
     volatile int rec_thread_exited; // If record thread has exited
     void* rec_buf;                  // Pointer to the recording buffer
-    unsigned int rec_buf_count;     // Count of already stored samples in the recording buffer
+	struct AudioQueue rec_q;		// Audio record queue
+	
 };
 
-#define GSM_AUDIO_CHANNEL_STATIC_INIT { 0, 0, 0,0,0,0, 0,0,0,0 ,0,0,0,0 }
+#define GSM_AUDIO_CHANNEL_STATIC_INIT { -1, 0,0,0,0,0,0, 0,0,0,{0} ,0,0,0,{0} }
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +60,10 @@ int gsm_audio_tunnel_start(struct GsmAudioTunnel *stream,
     unsigned int bits_per_sample);
 
 int gsm_audio_tunnel_stop(struct GsmAudioTunnel *stream);
+
+int gsm_audio_tunnel_running(struct GsmAudioTunnel *ctx);
+
+int gsm_audio_tunnel_mute(struct GsmAudioTunnel *stream, int muteit);
 
 #ifdef __cplusplus
 }

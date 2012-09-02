@@ -7,6 +7,7 @@ LOCAL_SRC_FILES := \
     at_tok.c \
     atchannel.c \
     audiochannel.cpp \
+	audioqueue.c \
     fcp_parser.c \
     gsm.c \
     huaweigeneric-ril.c \

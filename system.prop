@@ -18,5 +18,5 @@ ro.pad.features.modem=true
 
 debug.performance.tuning=1
 video.accelerate.hw=1
-dalvik.vm.dexopt-data-only=1              
+dalvik.vm.dexopt-data-only=1
 

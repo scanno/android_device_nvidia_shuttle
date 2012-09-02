@@ -34,3 +34,53 @@ The modules has still a few problems:
 ----
 
 	pppd must be suid ROOT, and kernel must include ppp support compiled in
+	/system/etc/ppp/ip-up and also /system/etc/ppp/ip-down must also be suid ROOT
+	
+----
+
+	You also need the following files in /system/etc/ppp
+
+----	
+/system/etc/ppp/ip-up:
+
+#!/system/bin/sh
+case $1 in
+    ppp1)
+	/android/bin/iptables --flush;
+	/android/bin/iptables --table nat --flush;
+	/android/bin/iptables --delete-chain;
+	/android/bin/iptables --table nat --append POSTROUTING --out-interface ppp0 -j MASQUERADE;
+	/android/bin/iptables --append FORWARD --in-interface ppp1 -j ACCEPT;
+	echo 0 > /proc/sys/net/ipv4/ip_forward;
+	echo 1 > /proc/sys/net/ipv4/ip_forward;
+	;;
+    ppp0)
+    /system/bin/setprop "net.interfaces.defaultroute" "$LINKNAME";
+    ;;
+esac
+
+/system/bin/setprop "net.$LINKNAME.dns1" "$DNS1"
+/system/bin/setprop "net.$LINKNAME.dns2" "$DNS2" 
+/system/bin/setprop "net.$LINKNAME.local-ip" "$IPLOCAL" 
+/system/bin/setprop "net.$LINKNAME.remote-ip" "$IPREMOTE" 
+/system/bin/setprop "net.$LINKNAME.gw" "$IPREMOTE"
+/system/bin/setprop "net.$LINKNAME.if" "$IFNAME"
+
+
+----
+/system/etc/ppp/ip-down:
+
+#!/system/bin/sh
+case $1 in
+    ppp1)
+	echo 0 > /proc/sys/net/ipv4/ip_forward;
+	;;
+esac
+
+/system/bin/setprop "net.$LINKNAME.dns1" ""
+/system/bin/setprop "net.$LINKNAME.dns2" "" 
+/system/bin/setprop "net.$LINKNAME.local-ip" "" 
+/system/bin/setprop "net.$LINKNAME.remote-ip" "" 
+/system/bin/setprop "net.$LINKNAME.gw" ""
+/system/bin/setprop "net.$LINKNAME.if" ""
+ 
