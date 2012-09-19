@@ -25,7 +25,7 @@ LOCAL_PATH := device/nvidia/shuttle
 LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
 
 DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
-# PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
+PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
 
 # uses mdpi artwork where available
 # PRODUCT_AAPT_CONFIG := normal mdpi
@@ -123,7 +123,6 @@ PRODUCT_PACKAGES += \
 	libhuaweigeneric-ril
 
 PRODUCT_COPY_FILES += \
-   $(LOCAL_PATH)/files/libhuawei-ril.so:system/lib/libhuawei-ril.so \
    $(LOCAL_PATH)/files/etc/init.gprs-pppd:system/etc/init.gprs-pppd \
    $(LOCAL_PATH)/files/etc/ppp/chap-secrets:system/etc/ppp/chap-secrets \
    $(LOCAL_PATH)/files/etc/ppp/gprs-connect-chat:system/etc/ppp/gprs-connect-chat \
@@ -136,6 +135,8 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/gprs \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/pppd-ril.options
 
+#   $(LOCAL_PATH)/files/libhuawei-ril.so:system/lib/libhuawei-ril.so
+
 PRODUCT_PROPERTY_OVERRIDES := \
     keyguard.no_require_sim=true
 
@@ -147,9 +148,9 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
    $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image \
    $(LOCAL_PATH)/files/su:system/xbin/su \
-   $(LOCAL_PATH)/files/busybox:system/xbin/busybox 
-
-#   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
+   $(LOCAL_PATH)/files/busybox:system/xbin/busybox \
+   $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip \
+   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
    
 # APNs list
 PRODUCT_COPY_FILES += \

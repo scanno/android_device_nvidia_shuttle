@@ -4,6 +4,9 @@
 #WLAN FIX
 echo 1 > /sys/devices/platform/shuttle-pm-wlan/keep_on_in_suspend
 
+#3G FIX
+echo 1 > /sys/devices/platform/shuttle-pm-gsm/keep_on_in_suspend
+
 #BT FIX                                                                 
 #echo 1 > /sys/devices/platform/shuttle-pm-bt/keep_on_in_suspend 
 
@@ -68,7 +71,8 @@ chown wifi:wifi /system/etc/wifi/wpa_supplicant.conf
 chmod 777 /data/misc/wifi
 #touch /data/misc/wifi/ipconfig.txt
 chmod 777 /data/misc/wifi/wpa_supplicant.conf
-chmod 6755 /system/bin/pppd                                                     
+chmod 6755 /system/bin/pppd
+chown radio:system /system/etc/ppp/ip-up
 #########################################################################
 #Misc tunings
 
