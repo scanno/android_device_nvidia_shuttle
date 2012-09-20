@@ -6240,7 +6240,7 @@ static void requestSendUSSD(void *data, size_t datalen, RIL_Token t)
      */
 	
 	/* Convert to GSM8 from UTF8 */
-	int utf8len = strlen(ussdRequest);
+	int utf8len = strlen((const char*)ussdRequest);
 	int gsmbytes = utf8_to_gsm8(ussdRequest, utf8len, NULL);
 	bytes_t gsm8 = malloc(gsmbytes + 1);
 	utf8_to_gsm8(ussdRequest, utf8len, gsm8);
@@ -7321,7 +7321,8 @@ static void onUnsolicited (const char *s, const char *sms_pdu)
     } else if (strStartsWith(s, "+CUSD:")) {
         unsolicitedUSSD(s);
     } else if (strStartsWith(s, "+CIEV: 7") ||
-               strStartsWith(s, "Received SMS:")) {
+               strStartsWith(s, "Received SMS:") ||
+			   strStartsWith(s, "^SMMEMFULL") ) {
         onNewSmsIndication();
     }
 }
@@ -7375,7 +7376,7 @@ static void onATTimeout()
 static void usage(char *s)
 {
 #ifdef RIL_SHLIB
-    fprintf(stderr, "htcgeneric-ril requires: -p <tcp port> or -d /dev/tty_device\n");
+    fprintf(stderr, "generic-ril requires: -p <tcp port> or -d /dev/tty_device\n");
 #else
     fprintf(stderr, "usage: %s [-p <tcp port>] [-d /dev/tty_device] [-v /dev/tty_device]\n", s);
     exit(-1);

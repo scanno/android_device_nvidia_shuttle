@@ -78,6 +78,8 @@ void agc_process_16bit(struct agc_ctx *ctx, short *buffer, int len)
         }
         buffer[i] = (short) ((buffer[i] * ctx->igain) >> 16);
     }
+	
+	//ALOGD("[%p] Gain: %d",ctx, ctx->igain);
 }
 
 void agc_process_8bit(struct agc_ctx *ctx, unsigned char *buffer, int len)
@@ -135,4 +137,6 @@ void agc_process_8bit(struct agc_ctx *ctx, unsigned char *buffer, int len)
         }
 		buffer[i] = (unsigned char) (( ((buffer[i] - 128) << 8) * ctx->igain) >> 24) + 128;
     }
+	
+	//ALOGD("[%p] Gain: %d",ctx, ctx->igain);
 }

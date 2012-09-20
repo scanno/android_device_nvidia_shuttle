@@ -21,7 +21,6 @@
 #  define  D(...)   ((void)0)
 #endif 
 
-
 /* Return count in buffer.  */
 #define CIRC_CNT(wr_pos,rd_pos,size) (((wr_pos) - (rd_pos)) & ((size)-1))
 
@@ -53,10 +52,11 @@ int AudioQueue_init(struct AudioQueue* ctx,unsigned int p2maxsamples, unsigned i
 	memset(ctx,0,sizeof(*ctx));
 	
 	ctx->size = maxsamples;
-	ctx->low  = maxsamples / 4;       // 1/4 or less means low
-	ctx->high = (maxsamples * 3) / 4; // 3/4 or more means high
+#if NEW_SYNC_ALGO
+	ctx->waitidx = 1;
+#endif
 	ctx->sample_sz = sample_sz;
-	
+
 	/* Linear resampler */
 	ctx->ratio = F_ONE;
 	
@@ -99,7 +99,7 @@ int AudioQueue_add(struct AudioQueue* ctx, void* data,unsigned int samples)
 	// If exited, avoid adding
 	if (!ctx->running)
 		return 0;
-		
+	
 	D("add[%p]: begin: Store %d samples",ctx,samples);
 	
 	// Not filled, add to the queue.
@@ -133,8 +133,9 @@ int AudioQueue_add(struct AudioQueue* ctx, void* data,unsigned int samples)
 	
 	D("add[%p]: end: Stored %d samples, size %d, rd:%d, wr:%d",ctx,samples - samples_todo,ctx->size, ctx->rd_pos, ctx->wr_pos);
 
+#if !NEW_SYNC_ALGO
 	// Adjust ratio if queue is getting full, to keep fullness under control
-	if (CIRC_CNT(ctx->wr_pos,ctx->rd_pos,ctx->size) > ctx->high) {
+	if (ctx->high && CIRC_CNT(ctx->wr_pos,ctx->rd_pos,ctx->size) > ctx->high) {
 		unsigned int ratio = ctx->ratio;
 	
 		// Adjust ratio to avoid this the next time 
@@ -147,6 +148,7 @@ int AudioQueue_add(struct AudioQueue* ctx, void* data,unsigned int samples)
 		ctx->ratio = ratio;
 		D("add[%p]: Adjusting ratio to keep queue 3/4 full: New ratio: %u",ctx, ratio);
 	}
+#endif
 
 #ifdef CHECK_MEM_OVERRUN
 	if (((int*)ctx->data)[-1                      ] != 0x1A2B6C7D) {
@@ -162,17 +164,47 @@ int AudioQueue_add(struct AudioQueue* ctx, void* data,unsigned int samples)
 	return samples - samples_todo;
 }
 
-int AudioQueue_get(struct AudioQueue* ctx, void* data,unsigned int samples)
+int AudioQueue_get(struct AudioQueue* ctx, void* data,unsigned int samples,unsigned int timeoutms)
 {
+	unsigned int maxgetreq;
 	unsigned int samples_todo = samples;
 	void* pdata = data;
-
+#if NEW_SYNC_ALGO	
+	struct timeval startop;
+	struct timeval curr;
+	unsigned int deltatm = 0;
+#endif
+	
 	// If exited, avoid adding
 	if (!ctx->running)
 		return 0;
 		
 	D("get[%p]: begin: Read of %d samples",ctx,samples);
+
+#if !NEW_SYNC_ALGO	
+	/* Keep track of the maximum read size, as we will use it as low/high limit */
+	maxgetreq = ctx->maxgetreq;
+	if (samples > maxgetreq) {
+		maxgetreq = samples;
+		ctx->maxgetreq = maxgetreq;
+
+		/* Limit to something we can use */
+		if (maxgetreq > ctx->size / 4) {
+			maxgetreq = ctx->size / 4;
+		}
 		
+		ctx->low  = maxgetreq*2;     // Low limit: 2 read pending
+		ctx->high = maxgetreq*3; 	 // High limit: 3 reads pending
+
+		D("get[%p]: new limits: low:%u, high:%u",ctx,ctx->low,ctx->high);
+	}
+#endif
+
+#if NEW_SYNC_ALGO			
+	// Store the time of the start of this operation
+	gettimeofday(&startop,NULL);
+#endif
+
 	// While samples to be read
 	while (ctx->running && samples_todo) {
 	
@@ -183,7 +215,7 @@ int AudioQueue_get(struct AudioQueue* ctx, void* data,unsigned int samples)
 		
 		D("get[%p]: [1] samples_todo: %u, rd: %u, wr: %u, sz: %u",ctx, samples_todo, ctx->rd_pos, ctx->wr_pos, ctx->size);
 		
-		// linear interpolation resampling until all requested data is providedno more
+		// linear interpolation resampling until all requested data is provided
 		if (ctx->sample_sz == 2 ) {
 			
 			short const *psrc = ctx->data;
@@ -239,7 +271,22 @@ int AudioQueue_get(struct AudioQueue* ctx, void* data,unsigned int samples)
 		
 		D("get[%p]: [2] samples_todo: %u, rd: %u, wr: %u, sz: %u",ctx, samples_todo, ctx->rd_pos, ctx->wr_pos, ctx->size);			
 		if (samples_todo) {
+			
+#if NEW_SYNC_ALGO
+			/* Get actual time */
+			gettimeofday(&curr,NULL);
 		
+			/* Yield a bit - 1 ms */
+			usleep(1000);
+			
+			/* Calculate waiting time */
+			deltatm = (curr.tv_sec - startop.tv_sec) * 1000000 + (curr.tv_usec - startop.tv_usec);
+			
+			/* If we are allowed to wait a bit to get those samples, keep trying */
+			if (deltatm < timeoutms) 
+				continue;
+#endif
+				
 			// No more samples to provide....
 			D("get[%p]: Not enough data on queue...",ctx);		
 
@@ -249,9 +296,69 @@ int AudioQueue_get(struct AudioQueue* ctx, void* data,unsigned int samples)
 	};
 
 	D("get[%p]: end: got %d samples, total: %d, rd:%d, wr:%d",ctx, samples - samples_todo, ctx->size,ctx->rd_pos, ctx->wr_pos);
+	
+#if NEW_SYNC_ALGO
+	// The idea is that we want to keep nearly in sync adds with gets, but this is not easy, as
+	// there is a lot of jitter in the add and get operations. So, instead of that, what we strive 
+	// is to adjust sampling rate so if we had to wait, wait more than 0 but less than 2ms. 
 
+	if (deltatm == 0) {
+		// We didn't had to wait. Everything could be fine, or we could be running the queue
+		//  too slow. try to speed it up a bit: We want to hit the 1ms waiting mark...
+		
+		unsigned int ratio = ctx->ratio;
+
+		// Adjust ratio to avoid this the next time.
+		ratio += ratio * ctx->waitidx / samples;
+
+		// Limit to sensible values
+		if (ratio > F_NBR(1.05)) {
+			ratio = F_NBR(1.05);
+		}
+		ctx->ratio = ratio;
+		
+		// Increment the nowaitctr, as this time we did not had to wait
+		if (ctx->nowaitctr < 50)
+			ctx->nowaitctr ++;
+		
+		D("get[%p]: Adjusting ratio to try to queue as empty as possible: New ratio: %u",ctx, ratio);
+		
+	} else {
+		// We had to wait. The queue is running too fast. Adjust it so the next time we don´t
+		//  have to wait...
+		unsigned int waitidx = ctx->waitidx;
+		unsigned int ratio = ctx->ratio;
+		ratio -= ratio * deltatm / samples;
+
+		// Limit to sensible values
+		if (ratio < F_NBR(0.95)) {
+			ratio = F_NBR(0.95);
+		}
+		ctx->ratio = ratio;
+		
+		// We had to wait... Adjust the wait index to try to make it nonwait most of the time
+		if (ctx->nowaitctr < 50) {
+			if (waitidx > 1)
+				waitidx --;			
+		} else
+		if (ctx->nowaitctr > 50) {
+			if (waitidx < 50)
+				waitidx ++;			
+		}
+		ctx->waitidx = waitidx;
+		
+		// And restart counting
+		ctx->nowaitctr = 0;
+	
+		D("get[%p]: Adjusting rate to try to avoid waiting: New ratio: %u, waitidx: %u",ctx,ratio,waitidx);
+	}		
+#endif
+	
+#if !NEW_SYNC_ALGO
 	// Adjust ratio if queue is getting empty, to keep fullness under control
-	if (CIRC_CNT(ctx->wr_pos,ctx->rd_pos,ctx->size) < ctx->low) {
+	if (samples != samples_todo &&  /* Something output */
+		ctx->low && /* Limit set */
+		CIRC_CNT(ctx->wr_pos,ctx->rd_pos,ctx->size) < ctx->low) {
 	
 		unsigned int ratio = ctx->ratio;
 		ratio -= ratio / 200;
@@ -264,6 +371,7 @@ int AudioQueue_get(struct AudioQueue* ctx, void* data,unsigned int samples)
 		
 		D("get[%p]: Adjusting rate to keep queue at least 1/4 full: New ratio: %u",ctx,ratio);
 	}
+#endif
 
 	// Apply AGC to the samples
 	if (ctx->sample_sz == 2 ) {
