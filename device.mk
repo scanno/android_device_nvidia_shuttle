@@ -147,10 +147,11 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
    $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image \
-   $(LOCAL_PATH)/files/su:system/xbin/su \
-   $(LOCAL_PATH)/files/busybox:system/xbin/busybox \
    $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip \
    $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
+
+#   $(LOCAL_PATH)/files/busybox:system/xbin/busybox
+#   $(LOCAL_PATH)/files/su:system/xbin/su 
    
 # APNs list
 PRODUCT_COPY_FILES += \
@@ -188,6 +189,13 @@ PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
     wifi.supplicant_scan_interval=15
 
+#zRAM support
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/zram/lzo_compress.ko:system/lib/modules/lzo_compress.ko \
+   $(LOCAL_PATH)/files/zram/lzo_decompress.ko:system/lib/modules/lzo_decompress.ko \
+   $(LOCAL_PATH)/files/zram/zram.ko:system/lib/modules/zram.ko \
+   $(LOCAL_PATH)/files/zram/zram.sh:system/xbin/zram.sh
+   $(LOCAL_PATH)/files/zram/showtoast.sh:system/xbin/showtoast.sh
 #USB
 
 PRODUCT_PACKAGES += \
@@ -251,7 +259,10 @@ PRODUCT_PACKAGES += \
   	openvpn \
 	liblzo \
 	Superuser \
-	recovery-reboot 
+	recovery-reboot \
+        su \
+	zRAMconfig
+
 #	advancedwifilockfree - Not needed anymore because the wifi problems have been solved.
 #        su 
 
