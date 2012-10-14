@@ -1,8 +1,24 @@
 #!/system/bin/sh
 
-#mount -t ext4 -o rw /dev/block/mmcblk0p2 /mnt/sdcard2
-#mount -t aufs -o br:/mnt/sdcard2=rw:/data=ro none /data
-#chmod 777 /data
+###
+# Added by Scanno.
+# I have added some logging to try to have some kind of trace to see when things
+# fail... Also added a check to see if there is a EXT partition on the SDCard.
+# If there is no EXT partition, then this script is stopped.
+###
+
+LOG_INT2EXT=/data/int2ext.log
+    if [ -e $LOG_INT2EXT ]; then
+    	rm $LOG_INT2EXT;
+    fi;
+if [ ! -e /dev/block/mmcblk0p2 ]
+then
+   echo "EXT partition NOT found !!! I am quitting this process....";
+   exit 0;
+else
+   echo "EXT partition found, lets continue :-)";
+fi;
+
 ###################################
 ## CronMod INT2EXT+ - 08/24/2012 ##
 ##  Written by CronicCorey @xda  ##
@@ -19,17 +35,21 @@
 ## Make /sd-ext directory if needed and unmount /sd-ext if it already mounted
 if [ ! -e /sd-ext ]
 then
-busybox mount -o remount,rw /;
-busybox mkdir /sd-ext;
-busybox mount -o remount,ro /;
+   echo "/sd-ext is has not been found... we try to create it";
+   busybox mount -o remount,rw /;
+   busybox mkdir /sd-ext;
+   busybox mount -o remount,ro /;
 else
-busybox umount /sd-ext;
+   echo "/sd-ext has been found... lets unmount it";
+   busybox umount /sd-ext;
 fi;
 
 ## Move /data mount point to /sd-ext
+echo "Moving /data mount point to /sd-ext...";
 busybox mount --move /data /sd-ext;
 
 ## Mount mmcblk0p2 to /data
+echo "Mount mmcblk0p2 to /data...";
 busybox mount -o noatime,nodiratime,nosuid,nodev /dev/block/mmcblk0p2 /data;
 busybox chown 1000:1000 /data;
 busybox chmod 771 /data;
@@ -37,59 +57,70 @@ busybox chmod 771 /data;
 ## Move existing files
 if [ ! -e /data/app ]
 then
-busybox mv /sd-ext/* /data;
+   echo "Move existing files...";
+   busybox mv /sd-ext/* /data;
 fi;
 
 ## Move /data, /nvram, /property, and /radio back to /sd-ext
 if [ ! -e /sd-ext/data ] && [ -e /data/data ]
 then
-busybox mv /data/data /sd-ext;
-busybox mkdir /data/data;
+   echo "Move /data/data back to /sd-ext...";
+   busybox mv /data/data /sd-ext;
+   busybox mkdir /data/data;
 fi;
 
 if [ ! -e /sd-ext/nvram ] && [ -e /data/nvram ] 
 then
-busybox mv /data/nvram /sd-ext;
-busybox mkdir /data/nvram;
+   echo "Moving /data/nvram back to /sd-ext...";
+   busybox mv /data/nvram /sd-ext;
+   busybox mkdir /data/nvram;
 fi;
 
 if [ ! -e /sd-ext/property ] && [ -e /data/property ]
 then
-busybox mv /data/property /sd-ext;
-busybox mkdir /data/property;
+   echo "Moving /property back to /sd-ext...";
+   busybox mv /data/property /sd-ext;
+   busybox mkdir /data/property;
 fi;
 
 if [ ! -e /sd-ext/radio ] && [ -e /data/radio ]
 then
-busybox mv /data/radio /sd-ext;
-busybox mkdir /data/radio;
+   echo "Moving /data/radio back to /sd-ext...";
+   busybox mv /data/radio /sd-ext;
+   busybox mkdir /data/radio;
 fi;
 
 ## Make Binds
 if [ -e /data/data ]
 then
-busybox mount -o bind /sd-ext/data /data/data;
+   echo "Bind /sd-ext/data to /data/data...";
+   busybox mount -o bind /sd-ext/data /data/data;
 fi;
 
 if [ -e /data/nvram ]
 then
-busybox mount -o bind /sd-ext/nvram /data/nvram;
+   echo "Bind /sd-ext/nvram to /data/nvram...";
+   busybox mount -o bind /sd-ext/nvram /data/nvram;
 fi;
 
 if [ -e /data/property ]
 then
-busybox mount -o bind /sd-ext/property /data/property;
+   echo "Bind /sd-ext/property to /data/property...";
+   busybox mount -o bind /sd-ext/property /data/property;
 fi;
 
 if [ -e /data/radio ]
 then
-busybox mount -o bind /sd-ext/radio /data/radio;
+   echo "Bind /sd-ext/radio to /data/radio...";
+   busybox mount -o bind /sd-ext/radio /data/radio;
 fi;
 
 ## Unmount /sd-ext
+echo "Unmount /sd-ext...";
 busybox umount /sd-ext;
 
 sync;
+echo "Done with INT2EXT...";
 
 ############################################################################################################################################################
 
