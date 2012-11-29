@@ -1,0 +1,14 @@
+#!/system/bin/sh
+# call systeminit.sh and/or rc1.d/* scripts if present in /data/local
+
+if [ -e /data/local/userinit.sh ];
+then
+   log -p i -t userinit "Executing /data/local/userinit.sh";
+   logwrapper /system/bin/sh /data/local/userinit.sh;
+fi;
+
+if [ -d /data/local/rc1.d ];
+then
+   log -p i -t userinit "Executing scripts in /data/local/rc5.d";
+   logwrapper busybox run-parts /data/local/rc5.d;
+fi;

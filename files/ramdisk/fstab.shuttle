@@ -1,0 +1,3 @@
+mtd@system /system yaffs2 ro wait
+mtd@cache /cache yaffs2 noatime,nosuid,nodev,errors=panic wait
+mtd@userdata /data yaffs2 noatime,nosuid,nodev,errors=panic wait

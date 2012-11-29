@@ -1,0 +1,15 @@
+#
+# Scanno: Added to include additions that are not really related to the real boot process of the ROM
+#
+
+service initd /system/xbin/busybox run-parts -a start /system/etc/init.d/rc1.d/
+    class main
+    user root
+    group root
+    oneshot
+
+service userinitd /system/xbin/busybox run-parts -a start /system/etc/init.d/rc5.d/
+    class postbootinit
+    user root
+    group root
+    oneshot

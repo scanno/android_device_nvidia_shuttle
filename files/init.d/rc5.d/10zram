@@ -1,0 +1,5 @@
+#!/system/bin/sh
+LOGI='log -p i -t ZRAM'
+$LOGI "Starting zRAM script. If enabled zRam will be started"
+/system/xbin/zram.sh loaddefaults > /data/local/zram-autostart.log
+
