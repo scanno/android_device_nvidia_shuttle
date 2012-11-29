@@ -27,7 +27,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
 	ChromeBookmarksSyncAdapter \
 	GenieWidget \
-        GmsCore \
 	GoogleBackupTransport \
 	GoogleCalendarSyncAdapter \
 	GoogleContactsSyncAdapter \
@@ -38,13 +37,13 @@ PRODUCT_PACKAGES += \
 	GoogleServicesFramework \
 	GoogleTTS \
 	MediaUploader \
+        Microbes \
 	NetworkLocation \
 	OneTimeInitializer \
 	Phonesky \
+        QuickSearchBox \
 	SetupWizard \
 	Talk \
-        Velvet \
-	VoiceSearchStub \
-	YouTube \
-	PlayMusic
+        Talkback \
+	VoiceSearchStub
 

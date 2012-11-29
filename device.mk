@@ -67,10 +67,12 @@ PRODUCT_COPY_FILES += \
 # Shuttle Configs
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel \
+    $(LOCAL_PATH)/files/ramdisk/init.rc:root/init.rc \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.rc:root/init.harmony.rc \
+    $(LOCAL_PATH)/files/ramdisk/init.harmony.custom.rc:/root/init.harmony.custom.rc \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.usb.rc:root/init.harmony.usb.rc \
     $(LOCAL_PATH)/files/ramdisk/ueventd.harmony.rc:root/ueventd.harmony.rc \
-    $(LOCAL_PATH)/files/ramdisk/initlogo.rle:root/initlogo.rle
+    $(LOCAL_PATH)/files/ramdisk/fstab.shuttle:root/fstab.shuttle
 
 # Backlight
 PRODUCT_PACKAGES := \
@@ -99,8 +101,8 @@ PRODUCT_PACKAGES += \
 	libaudioutils
 	
 # Power
-PRODUCT_PACKAGES += \
-	power.shuttle
+#PRODUCT_PACKAGES += \
+#	power.shuttle
 
 # Touchscreen
 PRODUCT_COPY_FILES += \
@@ -135,8 +137,6 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/gprs \
    $(LOCAL_PATH)/files/etc/ppp/peers/pppd-ril.options:system/etc/ppp/peers/pppd-ril.options
 
-#   $(LOCAL_PATH)/files/libhuawei-ril.so:system/lib/libhuawei-ril.so
-
 PRODUCT_PROPERTY_OVERRIDES := \
     keyguard.no_require_sim=true
 
@@ -147,8 +147,10 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
    $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image \
-   $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip \
-   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
+   $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip
+
+
+#   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
 
 #   $(LOCAL_PATH)/files/busybox:system/xbin/busybox
 #   $(LOCAL_PATH)/files/su:system/xbin/su 
@@ -194,10 +196,19 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/zram/lzo_compress.ko:system/lib/modules/lzo_compress.ko \
    $(LOCAL_PATH)/files/zram/lzo_decompress.ko:system/lib/modules/lzo_decompress.ko \
    $(LOCAL_PATH)/files/zram/zram.ko:system/lib/modules/zram.ko \
-   $(LOCAL_PATH)/files/zram/zram.sh:system/xbin/zram.sh
+   $(LOCAL_PATH)/files/zram/zram.sh:system/xbin/zram.sh \
    $(LOCAL_PATH)/files/zram/showtoast.sh:system/xbin/showtoast.sh
-#USB
 
+#init.d support
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/init.d/rc1.d/00banner:system/etc/init.d/rc1.d/00banner \
+   $(LOCAL_PATH)/files/init.d/rc1.d/01INT2EXT:system/etc/init.d/rc1.d/01INT2EXT \
+   $(LOCAL_PATH)/files/init.d/rc1.d/90systeminit:system/etc/init.d/rc1.d/90systeminit \
+   $(LOCAL_PATH)/files/init.d/rc5.d/00banner:system/etc/init.d/rc5.d/00banner \
+   $(LOCAL_PATH)/files/init.d/rc5.d/10zram:system/etc/init.d/rc5.d/10zram \
+   $(LOCAL_PATH)/files/init.d/rc5.d/90userinit:system/etc/init.d/rc5.d/90userinit
+
+#USB
 PRODUCT_PACKAGES += \
 	com.android.future.usb.accessory 
 
@@ -261,7 +272,8 @@ PRODUCT_PACKAGES += \
 	Superuser \
 	recovery-reboot \
         su \
-	zRAMconfig
+	zRAMconfig \
+        CMFileManager
 
 #	advancedwifilockfree - Not needed anymore because the wifi problems have been solved.
 #        su 
