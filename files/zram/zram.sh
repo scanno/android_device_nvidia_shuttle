@@ -1,5 +1,12 @@
 #!/system/bin/sh
 
+#Create 3 params to write to the logcat. This helps to identify possible
+#problems during boot time
+
+LOGI='log -p i -t zRAM'
+LOGE='log -p e -t zRAM'
+LOGW='log -p w -t zRAM'
+
 #Call: $0 [env|stop|start num size]
 # - "$0 env" will give overview of current zRAM environment
 # - "$0 start num size [swappiness]" will try to load needed modules and
@@ -113,11 +120,15 @@ load_modules () {
 			ZRAM_TMP=`$ZRAM_BUSYBOX lsmod | $ZRAM_BUSYBOX grep $ZRAM_MODULE_NAME`
 			if $ZRAM_BUSYBOX test -n "$ZRAM_TMP"; then
 				echo "LOADING MODULE $ZRAM_MODULE_NAME: already laoded"
+				$LOGI "LOADING MODULE $ZRAM_MODULE_NAME: already laoded"
 			else
 				ZRAM_ERROR="failed"
 				ZRAM_MODULE_PATH=`echo "$ZRAM_MOD" | $ZRAM_BUSYBOX awk -F ':' '{print $2;}'`
 				$ZRAM_BUSYBOX insmod "$ZRAM_MODULE_PATH" 2>/dev/null && ZRAM_ERROR="success"
+
 				echo "LOADING MODULE '$ZRAM_MODULE_NAME' FROM '$ZRAM_MODULE_PATH': $ZRAM_ERROR"
+				$LOGI "LOADING MODULE '$ZRAM_MODULE_NAME' FROM '$ZRAM_MODULE_PATH': $ZRAM_ERROR"
+
 				if $ZRAM_BUSYBOX test "$ZRAM_ERROR" != "success"; then
 					return
 				fi
@@ -133,10 +144,12 @@ load_modules () {
 		if $ZRAM_BUSYBOX test -n "$ZRAM_TMP"; then
 			ZRAM_ERROR="success"
 			echo "LOADING MODULE $ZRAM_MODULE_NAME: already laoded"
+			$LOGI echo "LOADING MODULE $ZRAM_MODULE_NAME: already laoded"
 		else
 			ZRAM_ERROR="failed"
 			$ZRAM_BUSYBOX insmod "$ZRAM_MODULE_PATH" $@ 2>/dev/null && ZRAM_ERROR="success"
 			echo "LOADING MODULE '$ZRAM_MODULE_NAME' WITH PARAMETERS '$@' FROM '$ZRAM_MODULE_PATH': $ZRAM_ERROR"
+			$LOGE "LOADING MODULE '$ZRAM_MODULE_NAME' WITH PARAMETERS '$@' FROM '$ZRAM_MODULE_PATH': $ZRAM_ERROR"
 		fi
 	fi
 }
@@ -148,10 +161,11 @@ unload_module () {
 		ZRAM_ERROR="failed"
 		$ZRAM_BUSYBOX rmmod "$ZRAM_MODULE_NAME" 2>/dev/null && ZRAM_ERROR="success"
 		echo "UNLOADING MODULE '$ZRAM_MODULE_NAME': $ZRAM_ERROR"
+		$LOGE "UNLOADING MODULE '$ZRAM_MODULE_NAME': $ZRAM_ERROR"
 	fi
 }
 
-unload_dep_modules () {
+unload_dep_modules () { 
 	if $ZRAM_BUSYBOX test "$ZRAM_MODULES_DEP_UNLOAD" == "*"; then
 		#reverse list
 		ZRAM_MODULES_DEP_UNLOAD="";
@@ -166,10 +180,12 @@ unload_dep_modules () {
 			ZRAM_TMP=`$ZRAM_BUSYBOX lsmod | $ZRAM_BUSYBOX grep $ZRAM_MODULE_NAME`
 			if $ZRAM_BUSYBOX test -z "$ZRAM_TMP"; then
 				echo "UNLOADING MODULE $ZRAM_MODULE_NAME: not loaded"
+				$LOGW echo "UNLOADING MODULE $ZRAM_MODULE_NAME: not loaded"
 			else
 				ZRAM_ERROR="failed"
 				$ZRAM_BUSYBOX rmmod "$ZRAM_MODULE_NAME" 2>/dev/null && ZRAM_ERROR="success"
 				echo "UNLOADING MODULE '$ZRAM_MODULE_NAME': $ZRAM_ERROR"
+				$LOGE "UNLOADING MODULE '$ZRAM_MODULE_NAME': $ZRAM_ERROR"
 				if $ZRAM_BUSYBOX test "$ZRAM_ERROR" != "success"; then
 					return
 				fi
@@ -216,6 +232,7 @@ case "$1" in
 
 	start)
 		echo "** START: Start"
+		$LOGI "** START: Start"
 
 		# check device count
 		if $ZRAM_BUSYBOX test `isint $2` == 1; then
@@ -274,6 +291,7 @@ case "$1" in
 		echo "LOADING MODULES: $ZRAM_ERROR"
 		if $ZRAM_BUSYBOX test "$ZRAM_ERROR" != "success"; then
 			echo "** START: Error loading modules"
+			$LOGE "** START: Error loading modules"
 			return 1
 		fi
 
@@ -281,6 +299,7 @@ case "$1" in
 		ZRAM_DEVICES=`ls /dev/block/zram* 2>/dev/null | $ZRAM_BUSYBOX wc -w`
 		if $ZRAM_BUSYBOX test "$ZRAM_DEVICES" != "$2"; then
 			echo "** START: Error setting up $2 zRAM devices (got $ZRAM_DEVICES)"
+			$LOGE "** START: Error setting up $2 zRAM devices (got $ZRAM_DEVICES)"
 			return 1
 		fi
 
@@ -303,6 +322,7 @@ case "$1" in
 			fi
 			if $ZRAM_BUSYBOX test -n "$ZRAM_ERROR"; then
 				echo "** START: Error in stage '$ZRAM_ERROR' for device '$ZRAM_DEV'"
+				$LOGE "** START: Error in stage '$ZRAM_ERROR' for device '$ZRAM_DEV'"
 				return 1
 			fi
 		done
@@ -317,6 +337,7 @@ case "$1" in
 
 		#Done!
 		echo "** START: Success"
+		$LOGI "** START: Success"
 		return 0
 		;;
 
@@ -401,24 +422,33 @@ case "$1" in
 		;;
 	loaddefaults)
 		echo "** LOADDEFAULTS: Start"
+		$LOGI "** LOADDEFAULTS: Start"
 
 		# Bail out, if defaults file doesn't exist ...
 		if $ZRAM_BUSYBOX test -f "$ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"; then
 			echo "FILE: defaults found in $ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"
+			$LOGI echo "FILE: defaults found in $ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"
+
 			ZRAM_DEFAULTS=`$ZRAM_BUSYBOX cat "$ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"`
 			ZRAM_TMP=`echo "$ZRAM_DEFAULTS" | $ZRAM_BUSYBOX wc -w`
 			# ... or doesn't have 3 parameters
 			if $ZRAM_BUSYBOX test "$ZRAM_TMP" == 3; then
 				echo "FILE: defaults file contains 3 parameters (OK)"
+				$LOGI "FILE: defaults file contains 3 parameters (OK)"
 			else
 				echo "FILE: defaults file contains $ZRAM_TMP parameters, 3 expected"
 				echo "** LOADDEFAULTS: Defaults file bad"
+				$LOGE "** LOADDEFAULTS: Defaults file bad"
+				$LOGE "zRAM autostart skipped, bad defaults file"
+
 				$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart skipped, bad defaults file'
 				return 1
 			fi
 		else
 			echo "FILE: defaults not found in $ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"
 			echo "** LOADDEFAULTS: Defaults file not found"
+			$LOGW "FILE: defaults not found in $ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"
+			$LOGW "** LOADDEFAULTS: Defaults file not found"
 			#Do not show notification - autostart was disabled
 			return 1 
 		fi
@@ -426,11 +456,16 @@ case "$1" in
 		# Bail out, if success flag file doesn't exist ...
 		if $ZRAM_BUSYBOX test -f "$ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"; then
 			echo "FILE: success flag found in $ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
+			$LOGI "FILE: success flag found in $ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
+
 			ZRAM_SUCCESS=`$ZRAM_BUSYBOX cat "$ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"`
 			# ... or doesn't have a single number
 			if $ZRAM_BUSYBOX test `isint $ZRAM_SUCCESS` != 1; then
 				echo "FILE: Success flag didn't contain a single number"
 				echo "** LOADDEFAULTS: Success flag file bad"
+				$LOGI "FILE: Success flag didn't contain a single number"
+				$LOGI "** LOADDEFAULTS: Success flag file bad"
+
 				$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart skipped, aborted try detected'
 				return 1
 			else 
@@ -438,10 +473,16 @@ case "$1" in
 				ZRAM_TMP=`$ZRAM_BUSYBOX date +%s`
 				ZRAM_TMP=$(($ZRAM_TMP-$ZRAM_SUCCESS));
 				echo "FILE: Success flag is $ZRAM_TMP seconds old"
+				$LOGI "FILE: Success flag is $ZRAM_TMP seconds old"
+
 				if $ZRAM_BUSYBOX test "$ZRAM_TMP" -lt "$ZRAM_MIN_AUTOSTART_INTERVAL"; then
 					echo "FILE: Success was younger than minimum of $ZRAM_MIN_AUTOSTART_INTERVAL seconds"
 					echo "FILE: Bailing out to avoid potential boot loop"
 					echo "** LOADDEFAULTS: Success flag too young"
+					$LOGW "FILE: Success was younger than minimum of $ZRAM_MIN_AUTOSTART_INTERVAL seconds"
+					$LOGW "FILE: Bailing out to avoid potential boot loop"
+					$LOGW "** LOADDEFAULTS: Success flag too young"
+
 					$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart skipped, potential bootloop detected'
 					return 1
 				fi
@@ -449,6 +490,9 @@ case "$1" in
 		else
 			echo "FILE: success flag not found in $ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
 			echo "** LOADDEFAULTS: Success flag not found"
+			$LOGW "FILE: success flag not found in $ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
+			$LOGW "** LOADDEFAULTS: Success flag not found"
+
 			$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart skipped, aborted try detected'
 			return 1 
 		fi
@@ -457,18 +501,26 @@ case "$1" in
 		if $ZRAM_BUSYBOX test -f "$ZRAM_DATA_DIR/$ZRAM_STARTED_FILE"; then
 			echo "FILE: Stale startup flag found in $ZRAM_DATA_DIR/$ZRAM_STARTED_FILE"
 			echo "** LOADDEFAULTS: Stale startup flag found"
+			$LOGW "FILE: Stale startup flag found in $ZRAM_DATA_DIR/$ZRAM_STARTED_FILE"
+			$LOGW "** LOADDEFAULTS: Stale startup flag found"
+
 			$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart skipped, aborted try detected'
 			return 1 
 		else
 			echo "FILE: No stale startup flag found in $ZRAM_DATA_DIR/$ZRAM_STARTED_FILE (OK)"
+			$LOGI "FILE: No stale startup flag found in $ZRAM_DATA_DIR/$ZRAM_STARTED_FILE (OK)"
 		fi
 
 		# Bail out, if current device size(s) exist
 		if $ZRAM_BUSYBOX test -z "$ZRAM_SIZES"; then
 			echo "RUNNING: zRAM not yet configured (OK)"
+			$LOGI "RUNNING: zRAM not yet configured (OK)"
 		else
 			echo "RUNNING: zRAM already configured (has sizes)"
 			echo "** LOADDEFAULTS: Already running"
+			$LOGW "RUNNING: zRAM already configured (has sizes)"
+			$LOGW "** LOADDEFAULTS: Already running"
+
 			$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart skipped, already running'
 			return 1 
 		fi
@@ -481,51 +533,67 @@ case "$1" in
 
 		# delete success flag file, create startup flag file 
 		echo "FLAGS: Setting 'started', resetting 'success'"
+		$LOGI "FLAGS: Setting 'started', resetting 'success'"
 		$ZRAM_BUSYBOX rm "$ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
 		$ZRAM_BUSYBOX date +%s > "$ZRAM_DATA_DIR/$ZRAM_STARTED_FILE"
 
 		echo "SUBSCRIPT: Calling '$ZRAM_CMD'"
+		$LOGI "SUBSCRIPT: Calling '$ZRAM_CMD'"
 		ZRAM_LASTLINE=`$ZRAM_CMD | $ZRAM_BUSYBOX tail -n 1`
 		ZRAM_EXITCODE=$?
 		echo "SUBSCRIPT: Returned with last line '$ZRAM_LASTLINE' and exit code $ZRAM_EXITCODE"
+		$LOGW "SUBSCRIPT: Returned with last line '$ZRAM_LASTLINE' and exit code $ZRAM_EXITCODE"
 
 		# Bail out, if subsommand failed
 		if $ZRAM_BUSYBOX test "$ZRAM_LASTLINE" != "** START: Success"; then
 			echo "SUBSCRIPT: Output returned did not indicate success"
 			echo "** LOADDEFAULTS: Start script failed with '$ZRAM_LASTLINE'"
+			$LOGE "SUBSCRIPT: Output returned did not indicate success"
+			$LOGE "** LOADDEFAULTS: Start script failed with '$ZRAM_LASTLINE'"
+
 			$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart failed'
 			return 1 
 		fi
 
 		#Clean up
 		echo "SUBSCRIPT: Output returned indicated success, cleaning up"
-
+		$LOGI "SUBSCRIPT: Output returned indicated success, cleaning up"
 		# Write success flag file, delete startup flag file 
 		echo "FLAGS: Resetting 'started', setting 'success'"
+		$LOGI "FLAGS: Resetting 'started', setting 'success'"
+
 		$ZRAM_BUSYBOX rm "$ZRAM_DATA_DIR/$ZRAM_STARTED_FILE"
 		$ZRAM_BUSYBOX date +%s > "$ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
 
 		# Done
 		echo "** LOADDEFAULTS: Success"
+		$LOGI "** LOADDEFAULTS: Success"
 		$ZRAM_BUSYBOX test -x "$ZRAM_SHOWTOAST" && $ZRAM_SHOWTOAST 'zRAM autostart succeded'
 		;;
 
 	setdefaults)
 		echo "** SETDEFAULTS: Start"
-
+		$LOGI "** SETDEFAULTS: Start"
 		# Make sure, data directory exists
 		if $ZRAM_BUSYBOX test -d "$ZRAM_DATA_DIR"; then
 			echo "DIR: Data directory exists in '$ZRAM_DATA_DIR'"
+			$LOGI echo "DIR: Data directory exists in '$ZRAM_DATA_DIR'"
 		else
 			# try to create it
 			echo "DIR: Data directory does not exis in '$ZRAM_DATA_DIR', trying to create it"
+			$LOGI "DIR: Data directory does not exis in '$ZRAM_DATA_DIR', trying to create it"
+
 			$ZRAM_BUSYBOX mkdir -p "$ZRAM_DATA_DIR"
 			# we can't rely on the exit code, but need to retest
 			if $ZRAM_BUSYBOX test -d "$ZRAM_DATA_DIR"; then
 				echo "DIR: Data directory created in '$ZRAM_DATA_DIR'"
+				$LOGI "DIR: Data directory created in '$ZRAM_DATA_DIR'"
 			else
 				echo "DIR: Could not create data directory"
 				echo "** SETDEFAULTS: Could not create data directory"
+				$LOGW "DIR: Could not create data directory"
+				$LOGW "** SETDEFAULTS: Could not create data directory"
+
 				return 1 
 			fi
 		fi
@@ -535,8 +603,10 @@ case "$1" in
 			# Not running: Delete defaults file to mark no autostart
 			$ZRAM_BUSYBOX rm "$ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE" > /dev/null 2>&1
 			echo "RUNNING: zRAM not configured, disabling autostart"
+			$LOGI "RUNNING: zRAM not configured, disabling autostart"
 		else
 			echo "RUNNING: zRAM already configured, enabling autostart"
+			$LOGI "RUNNING: zRAM already configured, enabling autostart"
 			# Write device count
 			echo $ZRAM_DEVICES > "$ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"
 			# Calculate and write total size
@@ -545,15 +615,18 @@ case "$1" in
 			# Get and write swappiness
 			$ZRAM_BUSYBOX sysctl vm.swappiness 2>/dev/null | $ZRAM_BUSYBOX sed 's/vm.swappiness = //' >> "$ZRAM_DATA_DIR/$ZRAM_DEFAULTS_FILE"
 			echo "FILE: Wrote new defaults file"
+			$LOGI "FILE: Wrote new defaults file"
 		fi
 
 		# Write success flag file, delete startup flag file 
 		echo "FLAGS: Resetting 'started', setting 'success'"
+		$LOGI "FLAGS: Resetting 'started', setting 'success'"
 		$ZRAM_BUSYBOX rm "$ZRAM_DATA_DIR/$ZRAM_STARTED_FILE" > /dev/null 2>&1
 		echo "0" > "$ZRAM_DATA_DIR/$ZRAM_SUCCESS_FILE"
 
 		# Done
 		echo "** SETDEFAULTS: Success"
+		$LOGI "** SETDEFAULTS: Success"
 		;;
 
 	*)

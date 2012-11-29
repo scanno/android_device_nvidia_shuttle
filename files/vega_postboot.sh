@@ -1,27 +1,9 @@
-#!/system/bin/ash
-
+#!/system/bin/sh
+L="log -p i -t postboot"
+$L "vega_postboot.sh started"
 ######################################################################
 #WLAN FIX
 echo 1 > /sys/devices/platform/shuttle-pm-wlan/keep_on_in_suspend
-
-#3G FIX
-#echo 1 > /sys/devices/platform/shuttle-pm-gsm/keep_on_in_suspend
-
-#BT FIX                                                                 
-#echo 1 > /sys/devices/platform/shuttle-pm-bt/keep_on_in_suspend 
-
-#Power Camera on, required every boot or no device
-#echo 0 > /sys/devices/platform/shuttle-pm-camera/power_on
-#echo 1 > /sys/devices/platform/shuttle-pm-camera/power_on
-
-#Sleep required i before permission change
-#sleep 3
-
-#Camera device permissions
-#chmod 666 /dev/video0
-
-#ENABLE CAMERA in Suspend
-#echo 1 > /sys/devices/platform/shuttle-pm-camera/keep_on_in_suspend
 
 ######################################################################
 
@@ -29,7 +11,7 @@ echo 1 > /sys/devices/platform/shuttle-pm-wlan/keep_on_in_suspend
 # Assign BT a proper unique mac address based off the wlan mac address# 
 #######################################################################
 if [ -e /data/bluez_provider/bluez_reg ] && [ -e /data/bluez_provider/mac_reg ] ; then
-echo "bluez registered"
+$L "bluez registered"
 else
 if [ -e /sys/devices/platform/sdhci-tegra.0/mmc_host/mmc0/mmc0:0001/mmc0:0001:1/net/wlan0/address ]; then
 mkdir /data/bluez_provider/
@@ -69,7 +51,7 @@ chmod 777 /system/etc/wifi
 chmod 644 /system/etc/wifi/wpa_supplicant.conf
 chown wifi:wifi /system/etc/wifi/wpa_supplicant.conf 
 chmod 777 /data/misc/wifi
-#touch /data/misc/wifi/ipconfig.txt
+touch /data/misc/wifi/ipconfig.txt
 chmod 777 /data/misc/wifi/wpa_supplicant.conf
 chmod 6755 /system/bin/pppd
 chown radio:system /system/etc/ppp/ip-up
@@ -79,8 +61,4 @@ chown radio:system /system/etc/ppp/ip-up
 #Add value to enable VM to have free ram to service apps
 
 sysctl -w vm.min_free_kbytes=16384
-
-#####
-# Start zram
-/system/xbin/zram.sh loaddefaults > /data/local/zram-autostart.log
 
