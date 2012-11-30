@@ -21,29 +21,33 @@ PRODUCT_COPY_FILES += \
 	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/lib,system/lib) \
 	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/etc,system/etc) \
 	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/framework,system/framework) \
-	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/tts,system/tts)	
+	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/media,system/media)	
 #	$(call find-copy-subdir-files,*,device/nvidia/shuttle/gapps/system/usr,system/usr)
 
 PRODUCT_PACKAGES += \
-	ChromeBookmarksSyncAdapter \
-	GenieWidget \
-	GoogleBackupTransport \
-	GoogleCalendarSyncAdapter \
-	GoogleContactsSyncAdapter \
+        CalendarGoogle \
+        ChromeBookmarksSyncAdapter \
+        ConfigUpdater \
+        GalleryGoogle \
+        Gmail2 \
+        GmsCore \
+        GoogleBackupTransport \
+        GoogleContactsSyncAdapter \
         GoogleEars \
-	GoogleFeedback \
-	GoogleLoginService \
-	GooglePartnerSetup \
-	GoogleServicesFramework \
-	GoogleTTS \
-	MediaUploader \
-        Microbes \
-	NetworkLocation \
-	OneTimeInitializer \
-	Phonesky \
+        GoogleFeedback \
+        GoogleLoginService \
+        GooglePartnerSetup \
+        GoogleServicesFramework \
+        GoogleTTS \
+        LatinImeGoogle \
+        MediaUploader \
+        Music2 \
+        NetworkLocation \
+        OneTimeInitializer \
+        Phonesky \
+        SetupWizard \
+        Talk \
+        Velvet \
         QuickSearchBox \
-	SetupWizard \
-	Talk \
-        Talkback \
-	VoiceSearchStub
+        VoiceSearchStub
 

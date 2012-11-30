@@ -89,11 +89,11 @@
     <bool translatable="false" name="config_wifi_background_scan_support">true</bool>
 
     <!-- Package name providing network location support. -->
-    <string name="config_networkLocationProviderPackageName" translatable="false">com.google.android.location</string>
-
+<!--    <string name="config_networkLocationProviderPackageName" translatable="false">com.google.android.location</string>
+-->
     <!-- Package name providing geocoder API support. -->
-    <string name="config_geocodeProviderPackageName" translatable="false">com.google.android.location</string>
-
+<!--    <string name="config_geocodeProviderPackageName" translatable="false">com.google.android.location</string>
+-->
     <!-- Flag indicating whether the we should enable the automatic brightness in Settings.
          Software implementation will be used if config_hardware_auto_brightness_available is not set -->
     <bool name="config_automatic_brightness_available">true</bool>

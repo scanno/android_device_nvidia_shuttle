@@ -50,48 +50,39 @@ static void sysfs_write(char *path, char *s)
     close(fd);
 }
 
-static void grouper_power_init(struct power_module *module)
+static void shuttle_power_init(struct power_module *module)
 {
     /*
      * cpufreq interactive governor: timer 20ms, min sample 100ms,
      * hispeed 700MHz at load 40%
      */
-    ALOGI("Entered power_init");
+
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
                 "20000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
                 "30000");
-//    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
-//                "85");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_maxspeed_load",
                 "85");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boost_factor",
 		"0");
-// Seems that input_boost does not exist in our interactive governor
-//    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/input_boost",
-//		"1");
 }
 
-static void grouper_power_set_interactive(struct power_module *module, int on)
+static void shuttle_power_set_interactive(struct power_module *module, int on)
 {
     /*
      * Lower maximum frequency when screen is off.  CPU 0 and 1 share a
      * cpufreq policy.
      */
-    ALOGI("Entered set_intractive");
 
     sysfs_write("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq",
                 on ? "1000000" : "700000");
-
-//    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/input_boost",
-//                on ? "1" : "0");
 
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boost_factor",
                 on ? "0" : "2");
 
 }
 
-static void grouper_power_hint(struct power_module *module, power_hint_t hint,
+static void shuttle_power_hint(struct power_module *module, power_hint_t hint,
                             void *data)
 {
     char buf[80];
@@ -121,7 +112,7 @@ struct power_module HAL_MODULE_INFO_SYM = {
         .methods = &power_module_methods,
     },
 
-    .init = grouper_power_init,
-    .setInteractive = grouper_power_set_interactive,
-    .powerHint = grouper_power_hint,
+    .init = shuttle_power_init,
+    .setInteractive = shuttle_power_set_interactive,
+    .powerHint = shuttle_power_hint,
 };

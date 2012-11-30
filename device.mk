@@ -78,6 +78,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES := \
 	lights.shuttle
 
+# HW Composer proxy
+PRODUCT_PACKAGES := \
+        hwcomposer.tegra
 # 3G
 PRODUCT_PACKAGES += rild 
 
@@ -98,11 +101,11 @@ PRODUCT_PACKAGES += \
 	audio.primary.shuttle \
 	audio.a2dp.default \
         audio.usb.default \
-	libaudioutils
+	libaudioutils 
 	
 # Power
-#PRODUCT_PACKAGES += \
-#	power.shuttle
+PRODUCT_PACKAGES += \
+	power.shuttle
 
 # Touchscreen
 PRODUCT_COPY_FILES += \
@@ -122,7 +125,11 @@ PRODUCT_COPY_FILES += \
 
 # Huawei 3G modem propietary files and PPP scripts
 PRODUCT_PACKAGES += \
-	libhuaweigeneric-ril
+     libhuaweigeneric-ril
+
+# Dumpstate
+PRODUCT_PACKAGES += \
+     libdumpstate.shuttle
 
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/init.gprs-pppd:system/etc/init.gprs-pppd \
@@ -272,11 +279,7 @@ PRODUCT_PACKAGES += \
 	Superuser \
 	recovery-reboot \
         su \
-	zRAMconfig \
-        CMFileManager
-
-#	advancedwifilockfree - Not needed anymore because the wifi problems have been solved.
-#        su 
+	zRAMconfig
 
 # for bugmailer
 ifneq ($(TARGET_BUILD_VARIANT),user)
