@@ -75,11 +75,11 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/ramdisk/fstab.shuttle:root/fstab.shuttle
 
 # Backlight
-PRODUCT_PACKAGES := \
+PRODUCT_PACKAGES += \
 	lights.shuttle
 
 # HW Composer proxy
-PRODUCT_PACKAGES := \
+PRODUCT_PACKAGES += \
         hwcomposer.tegra
 # 3G
 PRODUCT_PACKAGES += rild 
