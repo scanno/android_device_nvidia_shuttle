@@ -32,7 +32,7 @@ TARGET_NO_BOOTLOADER := true
 TARGET_BOOTLOADER_BOARD_NAME := p10an01
 
 # Keymapping 
-BOARD_CUSTOM_RECOVERY_KEYMAPPING := device/nvidia/shuttle/recovery_ui.c
+#BOARD_CUSTOM_RECOVERY_KEYMAPPING := device/nvidia/shuttle/recovery_ui.c
 
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
@@ -45,7 +45,10 @@ TARGET_ARCH_VARIANT_FPU := vfpv3-d16
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
 #Stock CMDLINE
-BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1  mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),155008K@23680K(system),32768K@179200K(cache),4096K@212480K(staging),306688K@217088K(userdata)
+#BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1  mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),155008K@23680K(system),32768K@179200K(cache),4096K@212480K(staging),306688K@217088K(userdata)
+
+BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),420736K@23680K(system),32768K@444928K(cache),4096K@478208K(staging),10240K@482816K(userdata)
+
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_PAGE_SIZE := 0x00000800
 
@@ -54,6 +57,10 @@ TARGET_BOARD_PLATFORM := tegra
 TARGET_TEGRA_VERSION := t25
 TARGET_BOOTLOADER_BOARD_NAME := shuttle
 #TARGET_BOARD_INFO_FILE := device/nvidia/shuttle/board-info.txt
+
+# Try to build the kernel
+#TARGET_KERNEL_SOURCE := kernel/nvidia/shuttle
+#TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
 
 BOARD_EGL_CFG := device/nvidia/shuttle/files/egl.cfg
 
@@ -64,8 +71,10 @@ TARGET_OTA_ASSERT_DEVICE := n01,shuttle,P10AN01
 
 
 BOARD_BOOTIMAGE_PARTITION_SIZE := 0x01000000
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x0c800000
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x105c0000
+#BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x0c800000
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 462282752
+#BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x105c0000
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 10485760
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 # Wifi related defines

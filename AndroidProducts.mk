@@ -15,4 +15,6 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/full_shuttle.mk
+    $(LOCAL_DIR)/device.mk
+
+#    $(LOCAL_DIR)/full_shuttle.mk

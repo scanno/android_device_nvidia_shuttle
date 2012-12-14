@@ -25,7 +25,7 @@ LOCAL_PATH := device/nvidia/shuttle
 LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
 
 DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
-PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
+#PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
 
 # uses mdpi artwork where available
 # PRODUCT_AAPT_CONFIG := normal mdpi
@@ -73,6 +73,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.usb.rc:root/init.harmony.usb.rc \
     $(LOCAL_PATH)/files/ramdisk/ueventd.harmony.rc:root/ueventd.harmony.rc \
     $(LOCAL_PATH)/files/ramdisk/fstab.shuttle:root/fstab.shuttle
+
 
 # Backlight
 PRODUCT_PACKAGES += \
@@ -124,8 +125,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/audio_policy.conf:system/etc/audio_policy.conf
 
 # Huawei 3G modem propietary files and PPP scripts
-PRODUCT_PACKAGES += \
-     libhuaweigeneric-ril
+#PRODUCT_PACKAGES += \
+#     libhuaweigeneric-ril
 
 # Dumpstate
 PRODUCT_PACKAGES += \
@@ -153,8 +154,9 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
-   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image \
-   $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip
+   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
+
+#   $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip
 
 
 #   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
@@ -209,7 +211,6 @@ PRODUCT_COPY_FILES += \
 #init.d support
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/init.d/rc1.d/00banner:system/etc/init.d/rc1.d/00banner \
-   $(LOCAL_PATH)/files/init.d/rc1.d/01INT2EXT:system/etc/init.d/rc1.d/01INT2EXT \
    $(LOCAL_PATH)/files/init.d/rc1.d/90systeminit:system/etc/init.d/rc1.d/90systeminit \
    $(LOCAL_PATH)/files/init.d/rc5.d/00banner:system/etc/init.d/rc5.d/00banner \
    $(LOCAL_PATH)/files/init.d/rc5.d/10zram:system/etc/init.d/rc5.d/10zram \
@@ -272,14 +273,15 @@ PRODUCT_PACKAGES += \
 # Add prebuild apks and superuser
 PRODUCT_PACKAGES += \
 	ShuttleTools \
-	ApexLauncher \
 	CameraGoogle \
   	openvpn \
 	liblzo \
 	Superuser \
-	recovery-reboot \
         su \
 	zRAMconfig
+
+#	recovery-reboot 
+#	ApexLauncher 
 
 # for bugmailer
 ifneq ($(TARGET_BUILD_VARIANT),user)
