@@ -155,14 +155,6 @@ PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
    $(LOCAL_PATH)/files/recovery:system/bin/recovery \
    $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
-
-#   $(LOCAL_PATH)/files/bootanimation.zip:system/media/bootanimation.zip
-
-
-#   $(LOCAL_PATH)/files/install-recovery.sh:system/etc/install-recovery.sh
-
-#   $(LOCAL_PATH)/files/busybox:system/xbin/busybox
-#   $(LOCAL_PATH)/files/su:system/xbin/su 
    
 # APNs list
 PRODUCT_COPY_FILES += \
@@ -225,11 +217,11 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 	persist.sys.usb.config=mtp
 
 # NFC
-PRODUCT_PACKAGES += \
-        libnfc \
-        libnfc_jni \
-        Nfc \
-        Tag
+#PRODUCT_PACKAGES += \
+#        libnfc \
+#        libnfc_jni \
+#        Nfc \
+#        Tag
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
@@ -274,22 +266,21 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	ShuttleTools \
 	CameraGoogle \
-  	openvpn \
-	liblzo \
-	Superuser \
-        su \
 	zRAMconfig
 
 #	recovery-reboot 
-#	ApexLauncher 
+#  	openvpn \
+#	liblzo \
+#	Superuser \
+#       su \
 
 # for bugmailer
-ifneq ($(TARGET_BUILD_VARIANT),user)
-	PRODUCT_PACKAGES += send_bug
-	PRODUCT_COPY_FILES += \
-		system/extras/bugmailer/bugmailer.sh:system/bin/bugmailer.sh \
-		system/extras/bugmailer/send_bug:system/bin/send_bug
-endif
+#ifneq ($(TARGET_BUILD_VARIANT),user)
+#	PRODUCT_PACKAGES += send_bug
+#	PRODUCT_COPY_FILES += \
+#		system/extras/bugmailer/bugmailer.sh:system/bin/bugmailer.sh \
+#		system/extras/bugmailer/send_bug:system/bin/send_bug
+#endif
 
 $(call inherit-product, frameworks/native/build/tablet-dalvik-heap.mk)
 #$(call inherit-product, vendor/nvidia/shuttle/device-vendor.mk)
