@@ -49,7 +49,7 @@ COMMON_GLOBAL_CFLAGS += -DICS_AUDIO_BLOB
 
 #BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),420736K@23680K(system),32768K@444928K(cache),4096K@478208K(staging),10240K@482816K(userdata)
 
-BOARD_KERNEL_CMDLINE := rootdelay=2 panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),451456K@23680K(system),32768K@475648K(cache),4096K@508928K(staging),10112K@513536K(userdata)
+BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),451456K@23680K(system),32768K@475648K(cache),4096K@508928K(staging),10112K@513536K(userdata)
 
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_PAGE_SIZE := 0x00000800
@@ -61,8 +61,8 @@ TARGET_BOOTLOADER_BOARD_NAME := shuttle
 #TARGET_BOARD_INFO_FILE := device/nvidia/shuttle/board-info.txt
 
 # Try to build the kernel
-#TARGET_KERNEL_SOURCE := kernel/nvidia/shuttle
-#TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
+TARGET_KERNEL_SOURCE := kernel/nvidia/shuttle
+TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
 
 BOARD_EGL_CFG := device/nvidia/shuttle/files/egl.cfg
 

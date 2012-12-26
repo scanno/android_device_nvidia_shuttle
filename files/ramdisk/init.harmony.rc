@@ -43,7 +43,10 @@ on fs
     mount squashfs loop@/system/lib.sfs /system/lib ro
     mount squashfs loop@/system/media.sfs /system/media ro
 
-    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
+
+    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev data=writeback nobh
 
     mount_all /fstab.shuttle
 

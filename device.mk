@@ -22,7 +22,7 @@
 LOCAL_PATH := device/nvidia/shuttle
 
 #TARGET_KERNEL_SOURCE := $(LOCAL_PATH)/kernel
-LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
+#LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
 
 DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
 #PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
@@ -66,7 +66,6 @@ PRODUCT_COPY_FILES += \
 
 # Shuttle Configs
 PRODUCT_COPY_FILES += \
-    $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/files/ramdisk/init.rc:root/init.rc \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.rc:root/init.harmony.rc \
     $(LOCAL_PATH)/files/ramdisk/init.harmony.custom.rc:/root/init.harmony.custom.rc \
@@ -74,7 +73,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/ramdisk/ueventd.harmony.rc:root/ueventd.harmony.rc \
     $(LOCAL_PATH)/files/ramdisk/fstab.shuttle:root/fstab.shuttle
 
-
+#    $(LOCAL_KERNEL):kernel \
 # Backlight
 PRODUCT_PACKAGES += \
 	lights.shuttle
