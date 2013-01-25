@@ -31,8 +31,8 @@ $(call inherit-product, device/nvidia/shuttle/device.mk)
 # Set those variables here to overwrite the inherited values.
 PRODUCT_NAME := full_shuttle
 PRODUCT_DEVICE := p10an01
-PRODUCT_BRAND := Shuttle
-PRODUCT_MODEL := PoV Mobii Tegra, Advent Vega
+PRODUCT_BRAND := Advent
+PRODUCT_MODEL := Vega
 #PRODUCT_MANUFACTURER := NVidia
 #BUILD_DISPLAY := VegaBean2
 #PRIVATE_BUILD_DESC := "US_epad-user 4.0.3 IML74K US_epad-9.4.2.21-20120323 release-keys"

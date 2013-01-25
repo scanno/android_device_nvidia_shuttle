@@ -113,32 +113,29 @@ static const struct pcm_config pcm_config_sco = {
 struct route_setting
 {
     char *ctl_name;
+    int intval;
     char *strval;
-    short intval;
 	short post_delay_ms;	/* Post delay in ms */
 };
 
 /* These are values that never change */
 struct route_setting defaults[] = {
     /* general */
-	/* Start disabling outputs */
 	{
-		.ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
-		.intval = 0,
-	},
-	{
-		.ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
-		.intval = 0,
-	},
-
-	/* Do actual programming */
-    {
         .ctl_name = MIXER_SPEAKER_PLAYBACK_VOLUME,
         .intval = PERC_TO_SPEAKER_VOLUME(1.0),
-    },
+	},
+	{
+        .ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
+        .intval = 1,
+	},
     {
         .ctl_name = MIXER_HEADSET_PLAYBACK_VOLUME,
         .intval = PERC_TO_HEADSET_VOLUME(1.0),
+    },
+    {
+        .ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
+        .intval = 0,
     },
     {
         .ctl_name = "Mono Playback Volume",
@@ -371,17 +368,6 @@ struct route_setting defaults[] = {
     {
         .ctl_name = INTERNAL_MIC_SWITCH,
         .intval = 1,
-		.post_delay_ms = 200, /* Perform a post delay of 200 ms before next step */
-	},
-
-	/* Now enable the required outputs */
-    {
-        .ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
-        .intval = 1,
-    },
-    {
-        .ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
-        .intval = 0,
     },
     {
         .ctl_name = NULL,
@@ -390,29 +376,21 @@ struct route_setting defaults[] = {
 
 /* Headphone playback route */
 struct route_setting headphone_route[] = {
-	/* Start disabling outputs */
 	{
-		.ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
-		.intval = 0,
+        .ctl_name = HEADPHONE_JACK_SWITCH,
+		.intval = 1,
 	},
 	{
 		.ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
-		.intval = 0,
-	},
-	/* Do the actual programming */
-    {
-        .ctl_name = HEADPHONE_JACK_SWITCH,
 		.intval = 1,
     },
     {
         .ctl_name = INTERNAL_SPEAKER_SWITCH,
 		.intval = 0,
-		.post_delay_ms = 200, /* Perform a post delay of 200 ms before next step */
     },
-	/* Enable the required outputs */
     {
-        .ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
-		.intval = 1,
+        .ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
+		.intval = 0,
     },
     {
         .ctl_name = NULL,
@@ -421,26 +399,18 @@ struct route_setting headphone_route[] = {
 
 /* Speaker playback route */
 struct route_setting speaker_route[] = {
-	/* Start disabling outputs */
 	{
-		.ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
+        .ctl_name = HEADPHONE_JACK_SWITCH,
 		.intval = 0,
 	},
 	{
 		.ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
 		.intval = 0,
 	},
-	/* Do the actual programming */
-    {
-        .ctl_name = HEADPHONE_JACK_SWITCH,
-		.intval = 0,
-    },
     {
         .ctl_name = INTERNAL_SPEAKER_SWITCH,
 		.intval = 1,
-		.post_delay_ms = 200, /* Perform a post delay of 200 ms before next step */
     },
-	/* Enable the required outputs */
 	{
         .ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
 		.intval = 1,
@@ -452,28 +422,16 @@ struct route_setting speaker_route[] = {
 
 /* Speaker Headphone playback route */
 struct route_setting speaker_headphone_route[] = {
-	/* Start disabling outputs */
 	{
-		.ctl_name = MIXER_SPEAKER_PLAYBACK_SWITCH,
-		.intval = 0,
+        .ctl_name = HEADPHONE_JACK_SWITCH,
+		.intval = 1,
 	},
 	{
 		.ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
-		.intval = 0,
-	},
-	/* Do the actual programming */
-    {
-        .ctl_name = HEADPHONE_JACK_SWITCH,
 		.intval = 1,
     },
     {
         .ctl_name = INTERNAL_SPEAKER_SWITCH,
-		.intval = 1,
-		.post_delay_ms = 200, /* Perform a post delay of 200 ms before next step */
-    },
-	/* Enable the required outputs */
-    {
-        .ctl_name = MIXER_HEADSET_PLAYBACK_SWITCH,
 		.intval = 1,
     },
     {
@@ -487,7 +445,6 @@ struct route_setting speaker_headphone_route[] = {
 
 /* No out route */
 struct route_setting no_out_route[] = {
-	/* Start disabling outputs */
     {
         .ctl_name = HEADPHONE_JACK_SWITCH,
 		.intval = 0,
@@ -1656,6 +1613,7 @@ static int adev_open(const hw_module_t* module, const char* name,
     adev->hw_device.common.module = (struct hw_module_t *) module;
     adev->hw_device.common.close = adev_close;
 
+//    adev->hw_device.get_supported_devices = adev_get_supported_devices;
     adev->hw_device.init_check = adev_init_check;
     adev->hw_device.set_voice_volume = adev_set_voice_volume;
     adev->hw_device.set_master_volume = adev_set_master_volume;

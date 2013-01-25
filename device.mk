@@ -124,8 +124,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/audio_policy.conf:system/etc/audio_policy.conf
 
 # Huawei 3G modem propietary files and PPP scripts
-#PRODUCT_PACKAGES += \
-#     libhuaweigeneric-ril
+PRODUCT_PACKAGES += \
+     libhuaweigeneric-ril
 
 # Dumpstate
 PRODUCT_PACKAGES += \
@@ -202,10 +202,12 @@ PRODUCT_COPY_FILES += \
 #init.d support
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/init.d/rc1.d/00banner:system/etc/init.d/rc1.d/00banner \
+   $(LOCAL_PATH)/files/init.d/rc1.d/01sysctl:system/etc/init.d/rc1.d/01sysctl \
    $(LOCAL_PATH)/files/init.d/rc1.d/90systeminit:system/etc/init.d/rc1.d/90systeminit \
    $(LOCAL_PATH)/files/init.d/rc5.d/00banner:system/etc/init.d/rc5.d/00banner \
-   $(LOCAL_PATH)/files/init.d/rc5.d/10zram:system/etc/init.d/rc5.d/10zram \
    $(LOCAL_PATH)/files/init.d/rc5.d/90userinit:system/etc/init.d/rc5.d/90userinit
+
+#   $(LOCAL_PATH)/files/init.d/rc5.d/10zram:system/etc/init.d/rc5.d/10zram \
 
 #USB
 PRODUCT_PACKAGES += \
@@ -263,9 +265,10 @@ PRODUCT_PACKAGES += \
 
 # Add prebuild apks and superuser
 PRODUCT_PACKAGES += \
-	ShuttleTools \
 	CameraGoogle \
+	ShuttleTools \
 	zRAMconfig
+
 
 #	recovery-reboot 
 #  	openvpn \

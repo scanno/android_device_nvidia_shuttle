@@ -43,13 +43,14 @@ on fs
     mount squashfs loop@/system/lib.sfs /system/lib ro
     mount squashfs loop@/system/media.sfs /system/media ro
 
-    wait /dev/block/mmcblk0p2
-    wait /dev/block/mmcblk0p2
-
-    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev data=writeback nobh
-
     mount_all /fstab.shuttle
 
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
+
+    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev data=writeback
     mkdir /flexrom 0770 root system
 
 on post-fs-data
@@ -177,9 +178,9 @@ service hostapd /system/bin/hostapd -dddd /data/misc/wifi/hostapd.conf
     disabled
 
 # Bluetooth/WLAN coexistance filter for Atheros AR600x
-service abtfilt /system/bin/abtfilt -c -d -z -n
-    class main
-    user root
+#service abtfilt /system/bin/abtfilt -c -d -z -n
+#    class main
+#    user root
 
 # DHCP server for Atheros
 service dhcpcd /system/bin/dhcpcd -d athap0
@@ -241,11 +242,11 @@ service bugreport /system/bin/dumpstate -d -v -o /data/storage/bugreports/bugrep
 
 # Cass - Add shuttle BT
 
-service hciattach /system/bin/nv_hciattach -n -t 100 -s 921600 ttyHS2 csr_tegra 921600 flow
-    user bluetooth
-    group system bluetooth net_bt_admin misc
-    oneshot
-    disabled
+#service hciattach /system/bin/nv_hciattach -n -t 100 -s 921600 ttyHS2 csr_tegra 921600 flow
+#    user bluetooth
+#    group system bluetooth net_bt_admin misc
+#    oneshot
+#    disabled
 
 # Start GPS daemon
 on boot

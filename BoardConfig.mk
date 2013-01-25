@@ -44,10 +44,8 @@ TARGET_ARCH_VARIANT_FPU := vfpv3-d16
 #TARGET_HAVE_TEGRA_ERRATA_657451 := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
-COMMON_GLOBAL_CFLAGS += -DICS_AUDIO_BLOB
+#COMMON_GLOBAL_CFLAGS += -DICS_AUDIO_BLOB
 #Stock CMDLINE
-
-#BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),420736K@23680K(system),32768K@444928K(cache),4096K@478208K(staging),10240K@482816K(userdata)
 
 BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),451456K@23680K(system),32768K@475648K(cache),4096K@508928K(staging),10112K@513536K(userdata)
 
@@ -63,6 +61,8 @@ TARGET_BOOTLOADER_BOARD_NAME := shuttle
 # Try to build the kernel
 TARGET_KERNEL_SOURCE := kernel/nvidia/shuttle
 TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
+# Lets try to use the linaro toolchain to see if that works
+#TARGET_KERNEL_CUSTOM_TOOLCHAIN := arm-eabi-linaro-4.7
 
 BOARD_EGL_CFG := device/nvidia/shuttle/files/egl.cfg
 
@@ -70,6 +70,10 @@ BOARD_USES_OVERLAY := true
 USE_OPENGL_RENDERER := true
 
 TARGET_OTA_ASSERT_DEVICE := n01,shuttle,P10AN01
+
+# Boot animation
+TARGET_SCREEN_HEIGHT := 600
+TARGET_SCREEN_WIDTH := 1024
 
 
 BOARD_BOOTIMAGE_PARTITION_SIZE := 0x01000000
