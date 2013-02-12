@@ -127,6 +127,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
      libhuaweigeneric-ril
 
+# Bluetooth
+PRODUCT_PACKAGES += \
+     libbt-vendor
+
 # Dumpstate
 PRODUCT_PACKAGES += \
      libdumpstate.shuttle

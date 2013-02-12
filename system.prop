@@ -20,3 +20,16 @@ debug.performance.tuning=1
 video.accelerate.hw=1
 dalvik.vm.dexopt-data-only=1
 
+### Pimp my Rom : Allow Dalvik to use JIT Compiler
+dalvik.vm.execution-mode=int:jit
+dalvik.vm.dexopt-flags=
+### Pimp my Rom : Hardware Acceleration Enabled
+video.accelerate.hw=1
+### Pimp my Rom : Force GPU Rendering on 2d Operations (build.prop part)
+debug.sf.hw=1
+debug.egl.profiler=1
+debug.egl.hw=1
+debug.composition.type=gpu
+### Pimp my Rom : Allow the purge of assets to free-up more RAM
+persist.sys.purgeable_assets=1
+
