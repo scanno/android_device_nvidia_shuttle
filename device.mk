@@ -24,7 +24,7 @@ LOCAL_PATH := device/nvidia/shuttle
 #TARGET_KERNEL_SOURCE := $(LOCAL_PATH)/kernel
 #LOCAL_KERNEL := $(LOCAL_PATH)/kernel/zImage
 
-DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
+DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 #PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
 
 # uses mdpi artwork where available

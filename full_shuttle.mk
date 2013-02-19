@@ -13,30 +13,22 @@
 # limitations under the License.
 
 # Camera
-PRODUCT_PACKAGES := \
-    SpareParts \
-    Development \
-    Stk \
-    Mms \
-    Email
+#PRODUCT_PACKAGES := \
+#    SpareParts \
+#    Development \
+#    Stk \
+#    Mms \
+#    Email
+
+# Inherit from shuttle device
+$(call inherit-product, device/nvidia/shuttle/device.mk)
 
 # Inherit from those products. Most specific first.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
-
-# This is where we'd set a backup provider if we had one
-#$(call inherit-product, device/sample/products/backup_overlay.mk)
-# Inherit from ahuttle device
-$(call inherit-product, device/nvidia/shuttle/device.mk)
 
 # Set those variables here to overwrite the inherited values.
 PRODUCT_NAME := full_shuttle
 PRODUCT_DEVICE := p10an01
 PRODUCT_BRAND := Advent
 PRODUCT_MODEL := Vega
-#PRODUCT_MANUFACTURER := NVidia
-#BUILD_DISPLAY := VegaBean2
-#PRIVATE_BUILD_DESC := "US_epad-user 4.0.3 IML74K US_epad-9.4.2.21-20120323 release-keys"
-#BUILD_FINGERPRINT := asus/WW_epad/EeePad:4.0.3/IML74K/WW_epad-9.4.3.29-20120511:user/release-keys
-
-#$(call inherit-product, device/nvidia/shuttle/google_apps.mk)
 

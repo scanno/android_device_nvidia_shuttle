@@ -50,7 +50,20 @@ on fs
     wait /dev/block/mmcblk0p2
     wait /dev/block/mmcblk0p2
 
-    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev data=writeback
+#    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev data=writeback
+    mount ext4 /dev/block/mmcblk0p2 /data wait noatime nodiratime nosuid nodev data=writeback barrier=0
+
+#####
+# Lines below added as test
+
+#    mount ext4 /dev/block/mmcblk0p2 /data wait noatime nodiratime nosuid nodev data=writeback barrier=0
+#    mkdir /data/cache
+#    exec /system/xbin/busybox mount --bind /data/cache /cache
+#    mount ext4 /data/cache /cache noatime nosuid nodev errors=panic wait
+
+# End test
+#####
+
     mkdir /flexrom 0770 root system
 
 on post-fs-data

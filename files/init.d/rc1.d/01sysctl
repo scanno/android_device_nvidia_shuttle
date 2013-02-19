@@ -19,24 +19,24 @@ $L "Threshold written";
 ###################################
 #  Kernel & Virtual Memory Tweaks  
 
-busybox sysctl -w vm.min_free_kbytes=8192;
-busybox sysctl -w vm.oom_kill_allocating_task=0;
-busybox sysctl -w vm.panic_on_oom=0;
-busybox sysctl -w vm.overcommit_memory=1;
-busybox sysctl -w vm.swappiness=20;
-busybox sysctl -w kernel.panic_on_oops=0;
-busybox sysctl -w kernel.panic=30;
+#busybox sysctl -w vm.min_free_kbytes=8192;
+#busybox sysctl -w vm.oom_kill_allocating_task=0;
+#busybox sysctl -w vm.panic_on_oom=0;
+#busybox sysctl -w vm.overcommit_memory=1;
+#busybox sysctl -w vm.swappiness=20;
+#busybox sysctl -w kernel.panic_on_oops=0;
+#busybox sysctl -w kernel.panic=30;
 
 ###################################
 #  SD Read Speed Tweak  
 
-if [ "`ls /sys/devices/virtual/bdi/179*/read_ahead_kb`" ]; then
-    for i in `ls /sys/devices/virtual/bdi/179*/read_ahead_kb`; do echo 1024 > $i; done;
-fi;
+#if [ "`ls /sys/devices/virtual/bdi/179*/read_ahead_kb`" ]; then
+#    for i in `ls /sys/devices/virtual/bdi/179*/read_ahead_kb`; do echo 1024 > $i; done;
+#fi;
 
-if [ "`ls /sys/devices/virtual/bdi/179*/max_ratio`" ]; then
-    for i in `ls /sys/devices/virtual/bdi/179*/max_ratio`; do echo $sd_max_ratio > $i; done;
-fi;
+#if [ "`ls /sys/devices/virtual/bdi/179*/max_ratio`" ]; then
+#    for i in `ls /sys/devices/virtual/bdi/179*/max_ratio`; do echo $sd_max_ratio > $i; done;
+#fi;
 
 #echo $bdi_cache > /sys/devices/virtual/bdi/7:0/read_ahead_kb;
 #echo $bdi_cache > /sys/devices/virtual/bdi/7:1/read_ahead_kb;
@@ -53,30 +53,30 @@ fi;
 #echo $sd_cache > /sys/devices/virtual/bdi/179:0/read_ahead_kb;
 #echo $sd_cache > /sys/devices/virtual/bdi/179:1/read_ahead_kb;
 
-echo $sd_cache > /sys/block/mmcblk0/bdi/read_ahead_kb;
-echo $sd_cache > /sys/block/mmcblk0/queue/read_ahead_kb;
+#echo $sd_cache > /sys/block/mmcblk0/bdi/read_ahead_kb;
+#echo $sd_cache > /sys/block/mmcblk0/queue/read_ahead_kb;
 
 busybox mount -o remount,noatime,noauto_da_alloc,nosuid,nodev,nodiratime,data=writeback,barrier=0,nobh /data
 
 ###################################
 # Memory management tweaks
 
-chmod 777 /sys/module/lowmemorykiller/parameters/adj;
-chmod 777 /sys/module/lowmemorykiller/parameters/minfree;
-if [ "$scadj" ]; then echo $scadj > /sys/module/lowmemorykiller/parameters/adj; fi;
-if [ "$scminfree" ]; then echo $scminfree > /sys/module/lowmemorykiller/parameters/minfree; fi;
+#chmod 777 /sys/module/lowmemorykiller/parameters/adj;
+#chmod 777 /sys/module/lowmemorykiller/parameters/minfree;
+#if [ "$scadj" ]; then echo $scadj > /sys/module/lowmemorykiller/parameters/adj; fi;
+#if [ "$scminfree" ]; then echo $scminfree > /sys/module/lowmemorykiller/parameters/minfree; fi;
 
 
 ###################################
 # Default I/O Scheduler Tweaks
 
-if [ -e /queue/iostats ]; then
-echo 0 > /queue/iostats;
-fi;  
+#if [ -e /queue/iostats ]; then
+#echo 0 > /queue/iostats;
+#fi;  
 
-if [ -e /queue/rotational ]; then
-echo 0 > /queue/rotational; fi;
-if [ -e /queue/nr_requests ]; then
-echo 1024 > /queue/nr_requests; fi;
+#if [ -e /queue/rotational ]; then
+#echo 0 > /queue/rotational; fi;
+#if [ -e /queue/nr_requests ]; then
+#echo 1024 > /queue/nr_requests; fi;
 
 
