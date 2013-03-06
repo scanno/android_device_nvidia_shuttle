@@ -131,6 +131,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
      libbt-vendor
 
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/etc/bluetooth/bluecore6.psr:system/etc/bluetooth/bluecore6.psr \
+   $(LOCAL_PATH)/files/etc/bluetooth/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf
+
 # Dumpstate
 PRODUCT_PACKAGES += \
      libdumpstate.shuttle
@@ -169,20 +173,10 @@ PRODUCT_PACKAGES += \
 # NVidia binary blobs
 $(call inherit-product, device/nvidia/shuttle/nvidia.mk)
 # Modules
-	
-# Bluetooth configuration files
-PRODUCT_COPY_FILES += \
-   $(LOCAL_PATH)/files/main.conf:system/etc/bluetooth/main.conf \
-   $(LOCAL_PATH)/files/bluecore6.psr:system/etc/bluez/bluecore6.psr \
-   $(LOCAL_PATH)/files/bluecore6.psr:system/etc/bluecore6.psr \
-   $(LOCAL_PATH)/files/hciattach:/system/bin/hciattach \
-   $(LOCAL_PATH)/files/bccmd:/system/bin/bccmd
-
 
 # Wifi
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/files/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
-	$(LOCAL_PATH)/wlan/ar6000.ko:system/lib/hw/wlan/ar6000.ko \
 	$(LOCAL_PATH)/wlan/athtcmd_ram.bin:system/lib/hw/wlan/athtcmd_ram.bin \
 	$(LOCAL_PATH)/wlan/athwlan.bin.z77:system/lib/hw/wlan/athwlan.bin.z77 \
 	$(LOCAL_PATH)/wlan/data.patch.hw2_0.bin:system/lib/hw/wlan/data.patch.hw2_0.bin \
@@ -190,6 +184,8 @@ PRODUCT_COPY_FILES += \
 	$(LOCAL_PATH)/wlan/eeprom.bin:system/lib/hw/wlan/eeprom.bin \
 	$(LOCAL_PATH)/wlan/eeprom.data:system/lib/hw/wlan/eeprom.data \
 	$(LOCAL_PATH)/wlan/abtfilt:system/bin/abtfilt
+
+# 	$(LOCAL_PATH)/wlan/ar6000.ko:system/lib/hw/wlan/ar6000.ko \
 
 PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
@@ -207,8 +203,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/init.d/rc1.d/00banner:system/etc/init.d/rc1.d/00banner \
    $(LOCAL_PATH)/files/init.d/rc1.d/01sysctl:system/etc/init.d/rc1.d/01sysctl \
+   $(LOCAL_PATH)/files/init.d/rc1.d/02ril-daemon:system/etc/init.d/rc1.d/02ril-daemon \
    $(LOCAL_PATH)/files/init.d/rc1.d/90systeminit:system/etc/init.d/rc1.d/90systeminit \
    $(LOCAL_PATH)/files/init.d/rc5.d/00banner:system/etc/init.d/rc5.d/00banner \
+   $(LOCAL_PATH)/files/init.d/rc5.d/01systweaks:system/etc/init.d/rc5.d/01systweaks \
    $(LOCAL_PATH)/files/init.d/rc5.d/90userinit:system/etc/init.d/rc5.d/90userinit
 
 #   $(LOCAL_PATH)/files/init.d/rc5.d/10zram:system/etc/init.d/rc5.d/10zram \

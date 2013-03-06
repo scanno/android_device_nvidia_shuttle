@@ -61,8 +61,14 @@ TARGET_BOOTLOADER_BOARD_NAME := shuttle
 # Try to build the kernel
 TARGET_KERNEL_SOURCE := kernel/nvidia/shuttle
 TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
-# Lets try to use the linaro toolchain to see if that works
-#TARGET_KERNEL_CUSTOM_TOOLCHAIN := arm-eabi-linaro-4.7
+#TARGET_KERNEL_CONFIG := tegra_shuttle_ubuntu_defconfig
+
+WIFI_MODULES:
+	make -C device/nvidia/shuttle/wlan/AR6kSDK.2.2.1.151/ ANDROID_ENV=1 ANDROID=1 ATH_LINUXPATH=$(KERNEL_OUT) ATH_CROSS_COMPILE_TYPE=$(ARM_EABI_TOOLCHAIN)/arm-eabi-
+	mv device/nvidia/shuttle/wlan/AR6kSDK.2.2.1.151/host/.output/tegra-sdio/image/ar6000.ko $(ANDROID_PRODUCT_OUT)/system/lib/hw/wlan
+	arm-eabi-strip $(ANDROID_PRODUCT_OUT)/system/lib/hw/wlan/ar6000.ko
+
+TARGET_KERNEL_MODULES := WIFI_MODULES
 
 BOARD_EGL_CFG := device/nvidia/shuttle/files/egl.cfg
 
@@ -106,7 +112,7 @@ BOARD_USES_GENERIC_INVENSENSE := false
 
 #BT
 BOARD_HAVE_BLUETOOTH := true
-#BOARD_HAVE_BLUETOOTH_BCM := true
+
 
 #GPS
 BOARD_HAVE_GPS := true

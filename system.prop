@@ -16,20 +16,39 @@ ro.pad.features.modem=true
 # Other additions
 #
 
-debug.performance.tuning=1
-video.accelerate.hw=1
 dalvik.vm.dexopt-data-only=1
-
-### Pimp my Rom : Allow Dalvik to use JIT Compiler
-dalvik.vm.execution-mode=int:jit
 dalvik.vm.dexopt-flags=
-### Pimp my Rom : Hardware Acceleration Enabled
-video.accelerate.hw=1
-### Pimp my Rom : Force GPU Rendering on 2d Operations (build.prop part)
-debug.sf.hw=1
-debug.egl.profiler=1
-debug.egl.hw=1
-debug.composition.type=gpu
+
 ### Pimp my Rom : Allow the purge of assets to free-up more RAM
 persist.sys.purgeable_assets=1
+
+#Tweaks by Areo#
+ro.ril.hep=1
+ro.ril.enable.dtm=1
+ro.ril.hsdpa.category=10
+ro.ril.enable.a53=1
+ro.ril.enable.3g.prefix=1
+ro.ril.htcmaskw1.bitmask=4294967295
+ro.ril.htcmaskw1=14449
+ro.ril.hsupa.category=5
+net.tcp.buffersize.default=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.wifi=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.umts=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.gprs=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.edge=4096,87380,256960,4096,16384,256960
+ro.kernel.android.checkjni=0
+debug.performance.tuning=1
+video.accelerate.hw=1
+media.stagefright.enable-player=True
+media.stagefright.enable-meta=True
+media.stagefright.enable-scan=True
+media.stagefright.enable-http=True
+debug.sf.hw=1
+pm.sleep_mode=1
+ro.media.enc.jpeg.quality=100
+dalvik.vm.execution-mode=Int:fast
+ro.media.dec.jpeg.memcap=8000000
+ro.media.enc.hprof.vid.bps=8000000
+persist.adb.notify=0
+ro.HOME_APP_ADJ=1
 

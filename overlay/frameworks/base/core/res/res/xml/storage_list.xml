@@ -33,34 +33,37 @@
 -->
 
 <StorageList xmlns:android="http://schemas.android.com/apk/res/android">
-    <storage android:mountPoint="/mnt/sdcard"
-			 android:storageDescription="@string/storage_sd_card"
-			 android:removable="true"
-			 android:allowMassStorage="true"
-			 android:primary="true" />
-    <storage android:mountPoint="/mnt/usbdisk"
-                         android:storageDescription="@string/storage_usb"
-                         android:removable="true"
-                         android:allowMassStorage="false"
-                         android:primary="false" />
-    <storage android:mountPoint="/mnt/usb/usb0"
-                         android:storageDescription="@string/storage_usb"
-                         android:removable="true"
-                         android:allowMassStorage="false"
-                         android:primary="false" />
-    <storage android:mountPoint="/mnt/usb/usb1"
-                         android:storageDescription="@string/storage_usb"
-                         android:removable="true"
-                         android:allowMassStorage="false"
-                         android:primary="false" />
-    <storage android:mountPoint="/mnt/usb/usb2"
-                         android:storageDescription="@string/storage_usb"
-                         android:removable="true"
-                         android:allowMassStorage="false"
-                         android:primary="false" />
-    <storage android:mountPoint="/mnt/usb/usb3"
-                         android:storageDescription="@string/storage_usb"
-                         android:removable="true"
-                         android:allowMassStorage="false"
-                         android:primary="false" />
+    <storage android:mountPoint="/storage/sdcard0"
+            android:storageDescription="@string/storage_internal"
+            android:primary="true"
+            android:emulated="true"
+            android:mtpReserve="100" />
+
+    <storage android:mountPoint="/storage/sdcard1"
+            android:storageDescription="@string/storage_sd_card"
+            android:removable="false"
+            android:maxFileSize="4096" />
+
+    <!-- external USB drive -->
+    <storage android:mountPoint="/storage/usbdisk0"
+            android:storageDescription="@string/storage_usb"
+            android:removable="true" />
+
+    <!-- USB On optional docking station -->
+    <storage android:mountPoint="/storage/usb0"
+            android:storageDescription="@string/storage_usb"
+            android:removable="true" />
+
+    <storage android:mountPoint="/storage/usb1"
+            android:storageDescription="@string/storage_usb"
+            android:removable="true" />
+
+    <storage android:mountPoint="/storage/usb2"
+            android:storageDescription="@string/storage_usb"
+            android:removable="true" />
+
+    <storage android:mountPoint="/storage/usb3"
+            android:storageDescription="@string/storage_usb"
+            android:removable="true" />
+
 </StorageList>

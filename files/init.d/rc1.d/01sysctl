@@ -2,70 +2,15 @@
 L="log -p i -t cm"
 
 ###################################
-# Set tweak values
-scminfree="2048,3072,10240,12032,14080,15872";
-scadj="0,3,6,10,12,15";
-
-sd_cache="1024";
-sd_max_ratio="97";
-bdi_cache="128";
-
-###################################
 # urandom tweak (seeder)
 
 busybox sysctl -e -w kernel.random.read_wakeup_threshold=1376;
 $L "Threshold written";
 
 ###################################
-#  Kernel & Virtual Memory Tweaks  
-
-#busybox sysctl -w vm.min_free_kbytes=8192;
-#busybox sysctl -w vm.oom_kill_allocating_task=0;
-#busybox sysctl -w vm.panic_on_oom=0;
-#busybox sysctl -w vm.overcommit_memory=1;
-#busybox sysctl -w vm.swappiness=20;
-#busybox sysctl -w kernel.panic_on_oops=0;
-#busybox sysctl -w kernel.panic=30;
-
-###################################
 #  SD Read Speed Tweak  
 
-#if [ "`ls /sys/devices/virtual/bdi/179*/read_ahead_kb`" ]; then
-#    for i in `ls /sys/devices/virtual/bdi/179*/read_ahead_kb`; do echo 1024 > $i; done;
-#fi;
-
-#if [ "`ls /sys/devices/virtual/bdi/179*/max_ratio`" ]; then
-#    for i in `ls /sys/devices/virtual/bdi/179*/max_ratio`; do echo $sd_max_ratio > $i; done;
-#fi;
-
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:0/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:1/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:2/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:3/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:4/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:5/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:6/read_ahead_kb;
-#echo $bdi_cache > /sys/devices/virtual/bdi/7:7/read_ahead_kb;
-#echo $sd_cache > /sys/devices/virtual/bdi/default/read_ahead_kb;
-#echo $sd_max_ratio > /sys/devices/virtual/bdi/179:0/max_ratio
-#echo $sd_max_ratio > /sys/devices/virtual/bdi/179:1/max_ratio
-#echo $sd_max_ratio > /sys/devices/virtual/bdi/default/max_ratio
-#echo $sd_cache > /sys/devices/virtual/bdi/179:0/read_ahead_kb;
-#echo $sd_cache > /sys/devices/virtual/bdi/179:1/read_ahead_kb;
-
-#echo $sd_cache > /sys/block/mmcblk0/bdi/read_ahead_kb;
-#echo $sd_cache > /sys/block/mmcblk0/queue/read_ahead_kb;
-
 busybox mount -o remount,noatime,noauto_da_alloc,nosuid,nodev,nodiratime,data=writeback,barrier=0,nobh /data
-
-###################################
-# Memory management tweaks
-
-#chmod 777 /sys/module/lowmemorykiller/parameters/adj;
-#chmod 777 /sys/module/lowmemorykiller/parameters/minfree;
-#if [ "$scadj" ]; then echo $scadj > /sys/module/lowmemorykiller/parameters/adj; fi;
-#if [ "$scminfree" ]; then echo $scminfree > /sys/module/lowmemorykiller/parameters/minfree; fi;
-
 
 ###################################
 # Default I/O Scheduler Tweaks

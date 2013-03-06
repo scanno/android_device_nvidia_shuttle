@@ -84,18 +84,31 @@ struct tegra2_hwc_composer_device_1_t {
 	volatile bool vsync_running;
 	
 	unsigned long long time_between_frames_ns;// ns 
-	bool enabled_vsync;
+	unsigned long time_between_frames_us; // us
+	
+	pthread_mutex_t vsync_mutex;
+    pthread_cond_t vsync_cond; 
+	volatile bool enabled_vsync;
 	
 	// NVidia implementation
-	int nvhost_fd;		
+	int 		nvhost_fd;		
 	unsigned int vblank_syncpt_id;
 	
 	// Buffer to do translations to speed them up
-	void* prepare_xlatebuf;
-	int prepare_xlatebufsz;
-	void* set_xlatebuf;
-	int set_xlatebufsz;
+	void* 		prepare_xlatebuf;
+	int 		prepare_xlatebufsz;
+	void* 		set_xlatebuf;
+	int 		set_xlatebufsz;
 	
+	// Misc info
+	int         fb_fd;
+    int32_t     xres;
+    int32_t     yres;
+    int32_t     xdpi;
+    int32_t     ydpi;
+    int32_t     vsync_period;
+	
+	volatile bool fbblanked;	// Framebuffer disabled
 }; 
 
 static void copy_layer1_to_layer(hwc_layer_t* dst,hwc_layer_1_t* src)
@@ -243,9 +256,21 @@ static void *tegra2_hwc_emulated_vsync_thread(void *data)
 	clock_gettime(CLOCK_MONOTONIC,&nexttm);
 	signed long long nexttm_ns = (nexttm.tv_sec) * 1000000000LL + (nexttm.tv_nsec);
 
-    do {	
+    while (1) {	
 		int err;
 
+		// Wait while display is blanked
+		pthread_mutex_lock(&pdev->vsync_mutex);
+		while (pdev->fbblanked && pdev->vsync_running) {
+
+			// When framebuffer is blanked, there must be no interrupts, so we can't wait on it
+			pthread_cond_wait(&pdev->vsync_cond, &pdev->vsync_mutex);
+			
+		};
+		if (!pdev->vsync_running)
+			break;
+		pthread_mutex_unlock(&pdev->vsync_mutex);
+		
 		// Estimate time of next emulated VSYNC
 		nexttm_ns += pdev->time_between_frames_ns;
 		
@@ -281,7 +306,7 @@ static void *tegra2_hwc_emulated_vsync_thread(void *data)
 		}
 	
 		// Do the VSYNC call
-		if (pdev->enabled_vsync && pdev->procs) {
+		if (pdev->enabled_vsync && pdev->procs && !pdev->fbblanked) {
 
 			// Get current time in exactly the same timebase as Choreographer
 			struct timespec now;
@@ -292,7 +317,9 @@ static void *tegra2_hwc_emulated_vsync_thread(void *data)
 			pdev->procs->vsync(pdev->procs, 0, now_ns);
 		}
 
-    } while (pdev->vsync_running);
+    };
+	
+	pthread_mutex_unlock(&pdev->vsync_mutex);
 
 	ALOGD("VSYNC thread emulator ended");
 	
@@ -311,7 +338,10 @@ static void *tegra2_hwc_emulated_vsync_thread(void *data)
 
 static int dc0_get_vblank_syncpt(void)
 {
-	int dc0_fd = open("/dev/tegra_dc0", O_RDWR);
+	// Try several DC0 interfaces
+	int dc0_fd = open("/dev/tegra_dc0", O_RDWR); // Newer interface
+	if (dc0_fd < 0)
+		dc0_fd = open("/dev/tegra_dc_0", O_RDWR);// Older interface
 	if (dc0_fd < 0) {
 		ALOGE("Failed to open NVidia DC0 - Assuming default VBLANK0 syncpoint id");
 		return NVSYNCPT_VBLANK0;
@@ -375,6 +405,7 @@ static int nvhost_syncpt_wait(int ctrl_fd, int id, int thresh, unsigned int time
 static int tegra2_wait_vsync(struct tegra2_hwc_composer_device_1_t *pdev)
 {
 	unsigned int syncpt = 0;
+	unsigned long max_wait_us = pdev->time_between_frames_us; // NVHOST_NO_TIMEOUT
 	
 	/* get syncpt threshold */
 	if (nvhost_syncpt_read(pdev->nvhost_fd, pdev->vblank_syncpt_id, &syncpt)) {
@@ -382,8 +413,8 @@ static int tegra2_wait_vsync(struct tegra2_hwc_composer_device_1_t *pdev)
 		return -1;
 	} 
 	
-	/* wait for the next value */
-	if (nvhost_syncpt_wait(pdev->nvhost_fd, pdev->vblank_syncpt_id, syncpt + 1, NVHOST_NO_TIMEOUT) < 0) {
+	/* wait for the next value with timeout*/
+	if (nvhost_syncpt_wait(pdev->nvhost_fd, pdev->vblank_syncpt_id, syncpt + 1, max_wait_us) < 0) {
 		ALOGE("Failed to wait for VBLANK!");
 		return -1;
 	} 
@@ -402,14 +433,26 @@ static void *tegra2_hwc_nv_vsync_thread(void *data)
 	
     setpriority(PRIO_PROCESS, 0, HAL_PRIORITY_URGENT_DISPLAY);
 	
-    do {	
+    while (1) {	
 		int err;
-	
+
+		// Wait while display is blanked
+		pthread_mutex_lock(&pdev->vsync_mutex);
+		while (pdev->fbblanked && pdev->vsync_running) {
+
+			// When framebuffer is blanked, there must be no interrupts, so we can't wait on it
+			pthread_cond_wait(&pdev->vsync_cond, &pdev->vsync_mutex);
+			
+		};
+		if (!pdev->vsync_running)
+			break;
+		pthread_mutex_unlock(&pdev->vsync_mutex);
+		
 		// Wait for the next vsync
 		tegra2_wait_vsync(pdev);
 		
 		// Do the VSYNC call
-		if (pdev->enabled_vsync && pdev->procs) {
+		if (pdev->enabled_vsync && pdev->procs && !pdev->fbblanked) {
 
 			// Get current time in exactly the same timebase as Choreographer
 			struct timespec now;
@@ -419,15 +462,14 @@ static void *tegra2_hwc_nv_vsync_thread(void *data)
 			
 			pdev->procs->vsync(pdev->procs, 0, now_ns);
 		}
+    };
 
-    } while (pdev->vsync_running);
-
+	pthread_mutex_unlock(&pdev->vsync_mutex);
+	
 	ALOGD("NVidia VSYNC thread ended");
 	
     return NULL;
 }
-
-
 
 static int tegra2_eventControl(struct hwc_composer_device_1 *dev, int dpy,
         int event, int enabled)
@@ -453,6 +495,26 @@ static int tegra2_blank(struct hwc_composer_device_1 *dev, int disp, int blank)
     struct tegra2_hwc_composer_device_1_t *pdev =
             (struct tegra2_hwc_composer_device_1_t *)dev;
 
+	int fb_blank = blank ? FB_BLANK_POWERDOWN : FB_BLANK_UNBLANK;
+	
+	// Store framebuffer status
+	pthread_mutex_lock(&pdev->vsync_mutex);
+	pdev->fbblanked = fb_blank;
+	pthread_cond_signal(&pdev->vsync_cond);
+	pthread_mutex_unlock(&pdev->vsync_mutex);
+	
+	if (pdev->fb_fd >= 0) {
+		int err = ioctl(pdev->fb_fd, FBIOBLANK, fb_blank);
+		if (err < 0) {
+			if (errno == EBUSY)
+				ALOGI("%sblank ioctl failed (display already %sblanked)",
+						blank ? "" : "un", blank ? "" : "un");
+			else
+				ALOGE("%sblank ioctl failed: %s", blank ? "" : "un",
+						strerror(errno));
+			return -errno;
+		}
+	}
     return 0;
 }
 
@@ -464,8 +526,27 @@ static int tegra2_query(struct hwc_composer_device_1* dev, int what, int *value)
 	int ret =  (!pdev->org->query)
 		? -EINVAL
 		: pdev->org->query(pdev->org,what,value);
-	
-	return ret;
+
+	if (ret == 0)
+		return ret;
+
+	// If not handled, emulate it if possible
+	switch (what) {
+    case HWC_BACKGROUND_LAYER_SUPPORTED:
+        // we support the background layer
+        value[0] = 1;
+        break;
+
+    case HWC_VSYNC_PERIOD:
+        // vsync period in nanosecond
+        value[0] = pdev->vsync_period;
+        break;
+
+    default:
+        // unsupported query
+        return ret;
+    }
+    return 0;
 } 
 
 static void tegra2_registerProcs(struct hwc_composer_device_1* dev,
@@ -500,14 +581,28 @@ static int tegra2_close(hw_device_t *device)
 	// Stop VSYNC thread, if running
 	if (pdev->vsync_running) {
 		void * dummy;
+		
+		pthread_mutex_lock(&pdev->vsync_mutex);
 		pdev->vsync_running = false;
+		pthread_cond_signal(&pdev->vsync_cond);
+		pthread_mutex_unlock(&pdev->vsync_mutex);
+		
 		pthread_join(pdev->vsync_thread, &dummy);
 	}
+	
+    pthread_mutex_destroy(&pdev->vsync_mutex);
+	pthread_cond_destroy(&pdev->vsync_cond);
 	
 	// Close NVidia host handle, if being used...
 	if (pdev->nvhost_fd >= 0) {
 		nvhost_close(pdev->nvhost_fd);
 		pdev->nvhost_fd = -1;
+	}
+	
+	// Close framebuffer handle, if being used...
+	if (pdev->fb_fd >= 0) {
+		close(pdev->fb_fd);
+		pdev->fb_fd = -1;
 	}
 	
 	int ret = pdev->org->common.close( (hw_device_t *) pdev->org );
@@ -520,6 +615,7 @@ static int tegra2_close(hw_device_t *device)
 	free(pdev);
 	return ret;
 }
+
 
 static int tegra2_open(const struct hw_module_t *module, const char *name,
         struct hw_device_t **device)
@@ -553,6 +649,44 @@ static int tegra2_open(const struct hw_module_t *module, const char *name,
     dev->base.registerProcs = tegra2_registerProcs;
     dev->base.dump = tegra2_dump;
 
+	dev->fb_fd = -1;
+	struct fb_var_screeninfo info;	
+	
+	// Open framebuffer
+	dev->fb_fd = open("/dev/graphics/fb0", O_RDWR);
+
+	// Get framebuffer info
+	if (dev->fb_fd >= 0 && ioctl(dev->fb_fd, FBIOGET_VSCREENINFO, &info) != -1) {
+			
+		unsigned long long refreshRate = 1000000000000LLU /
+			(
+			 uint64_t( info.upper_margin + info.lower_margin + info.yres )
+			 * ( info.left_margin  + info.right_margin + info.xres )
+			 * info.pixclock
+			);
+
+		if (refreshRate == 0) {
+			ALOGW("invalid refresh rate, assuming 60 Hz");
+			refreshRate = 60;
+		}
+
+		dev->xres = info.xres;
+		dev->yres = info.yres;
+		dev->xdpi = 1000 * (info.xres * 25.4f) / info.width;
+		dev->ydpi = 1000 * (info.yres * 25.4f) / info.height;
+		dev->vsync_period  = 1000000000 / refreshRate;
+
+		ALOGV("using\n"
+			"xres         = %d px\n"
+			"yres         = %d px\n"
+			"width        = %d mm (%f dpi)\n"
+			"height       = %d mm (%f dpi)\n"
+			"refresh rate = %d Hz\n",
+			dev->xres, dev->yres, info.width, dev->xdpi / 1000.0,
+			info.height, dev->ydpi / 1000.0, refreshRate);
+
+	}
+	
 	// Try to query the original hw composer for the time between frames...
 	int value = 0;
 	
@@ -562,22 +696,15 @@ static int tegra2_open(const struct hw_module_t *module, const char *name,
 	} else {
 		// Try to get the time from the framebuffer device...
 
-		int fd = -1;
-		fd = open("/dev/graphics/fb0", O_RDWR);
-		if (fd >= 0) {
+		if (dev->fb_fd >= 0) {
 			
-			struct fb_var_screeninfo info;
-			if (ioctl(fd, FBIOGET_VSCREENINFO, &info) != -1) {
+			value =	(
+				 uint64_t( info.upper_margin + info.lower_margin + info.yres )
+				 * ( info.left_margin  + info.right_margin + info.xres )
+				 * info.pixclock
+				) / 1000ULL;
 
-				value =	(
-					 uint64_t( info.upper_margin + info.lower_margin + info.yres )
-					 * ( info.left_margin  + info.right_margin + info.xres )
-					 * info.pixclock
-					) / 1000ULL;
-
-				ALOGD("Got time between frames from framebuffer: time in ns = %d",value);
-			}
-			close(fd);
+			ALOGD("Got time between frames from framebuffer: time in ns = %d",value);
 		}
 	}	
 
@@ -586,7 +713,11 @@ static int tegra2_open(const struct hw_module_t *module, const char *name,
 		value = 50000000 / 3;
 	}	
 	dev->time_between_frames_ns = value;
+	dev->time_between_frames_us = (unsigned long)(value / 1000ULL);
    
+    pthread_mutex_init(&dev->vsync_mutex, NULL);
+	pthread_cond_init(&dev->vsync_cond, NULL);
+       
 	// Find out if we can use the NVidia VBLANK0 syncpoint to get VSYNC 
 	//  interrupts, or we must completely emulate them...
 	dev->nvhost_fd = nvhost_open();
