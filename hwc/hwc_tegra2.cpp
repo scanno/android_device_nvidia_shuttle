@@ -63,7 +63,7 @@ static hwc_module_t* get_hwc(void)
 			return NULL;
 		}
 
-		orghwc = (hwc_module_t*) dlsym(handle,"HMI");
+		orghwc = (hwc_module_t*) dlsym(handle,HAL_MODULE_INFO_SYM_AS_STR);
 		if (!orghwc) {
 			ALOGE("Unable to resolve HWC v0 HMI");
 			dlclose(handle);
@@ -170,6 +170,10 @@ static int tegra2_set(struct hwc_composer_device_1 *dev,
 	if (!contents->dpy || !contents->sur)
         return 0;
 
+	// If blanking, make gralloc handle everything to aovid crashes
+	if (pdev->fbblanked)
+		return -ENODEV;
+		
 	int reqsz = sizeof (hwc_layer_list_t) + sizeof(hwc_layer_t) * contents->numHwLayers;
 	
 	// Make sure we have enough space on the translation buffer
@@ -217,6 +221,10 @@ static int tegra2_prepare(hwc_composer_device_1_t *dev,
 	hwc_display_contents_1_t *contents = displays[0];
 	if (!contents) 
 		return 0;
+
+	// If blanking, make gralloc handle everything to aovid crashes
+	if (pdev->fbblanked)
+		return -ENODEV;
 		
 	ALOGV("preparing %u layers", contents->numHwLayers);
 
@@ -495,26 +503,15 @@ static int tegra2_blank(struct hwc_composer_device_1 *dev, int disp, int blank)
     struct tegra2_hwc_composer_device_1_t *pdev =
             (struct tegra2_hwc_composer_device_1_t *)dev;
 
-	int fb_blank = blank ? FB_BLANK_POWERDOWN : FB_BLANK_UNBLANK;
+	ALOGD("blank: %d", blank);
 	
 	// Store framebuffer status
 	pthread_mutex_lock(&pdev->vsync_mutex);
-	pdev->fbblanked = fb_blank;
+	pdev->fbblanked = blank;
 	pthread_cond_signal(&pdev->vsync_cond);
 	pthread_mutex_unlock(&pdev->vsync_mutex);
-	
-	if (pdev->fb_fd >= 0) {
-		int err = ioctl(pdev->fb_fd, FBIOBLANK, fb_blank);
-		if (err < 0) {
-			if (errno == EBUSY)
-				ALOGI("%sblank ioctl failed (display already %sblanked)",
-						blank ? "" : "un", blank ? "" : "un");
-			else
-				ALOGE("%sblank ioctl failed: %s", blank ? "" : "un",
-						strerror(errno));
-			return -errno;
-		}
-	}
+
+	/* Blanking is handled by other means, no need to blank screen here */
     return 0;
 }
 

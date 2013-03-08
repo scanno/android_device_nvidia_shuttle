@@ -66,7 +66,6 @@ TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
 WIFI_MODULES:
 	make -C device/nvidia/shuttle/wlan/AR6kSDK.2.2.1.151/ ANDROID_ENV=1 ANDROID=1 ATH_LINUXPATH=$(KERNEL_OUT) ATH_CROSS_COMPILE_TYPE=$(ARM_EABI_TOOLCHAIN)/arm-eabi-
 	mv device/nvidia/shuttle/wlan/AR6kSDK.2.2.1.151/host/.output/tegra-sdio/image/ar6000.ko $(ANDROID_PRODUCT_OUT)/system/lib/hw/wlan
-	arm-eabi-strip $(ANDROID_PRODUCT_OUT)/system/lib/hw/wlan/ar6000.ko
 
 TARGET_KERNEL_MODULES := WIFI_MODULES
 
