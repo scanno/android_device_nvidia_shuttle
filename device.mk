@@ -27,10 +27,9 @@ LOCAL_PATH := device/nvidia/shuttle
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 #PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/dictionaries
 
-# uses mdpi artwork where available
-# PRODUCT_AAPT_CONFIG := normal mdpi
-# PRODUCT_AAPT_PREF_CONFIG := mdpi
-# PRODUCT_LOCALES += mdpi
+# prefer mdpi drawables where available
+PRODUCT_AAPT_CONFIG := normal mdpi hdpi xhdpi
+PRODUCT_AAPT_PREF_CONFIG := mdpi
 
 # These are the hardware-specific feature permissions
 PRODUCT_COPY_FILES += \
@@ -139,6 +138,14 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
      libdumpstate.shuttle
 
+# Reboot into recovery
+PRODUCT_COPY_FILES += \
+   $(LOCAL_PATH)/files/recovery:system/bin/recovery
+#   $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
+
+PRODUCT_PACKAGES += \
+     setrecovery
+
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/init.gprs-pppd:system/etc/init.gprs-pppd \
    $(LOCAL_PATH)/files/etc/ppp/chap-secrets:system/etc/ppp/chap-secrets \
@@ -159,8 +166,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
    $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
-   $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
-   $(LOCAL_PATH)/files/recovery:system/bin/recovery \
    $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
    
 # APNs list
@@ -219,13 +224,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 	persist.sys.usb.config=mtp
 
-# NFC
-#PRODUCT_PACKAGES += \
-#        libnfc \
-#        libnfc_jni \
-#        Nfc \
-#        Tag
-
 # Live Wallpapers
 PRODUCT_PACKAGES += \
 	HoloSpiralWallpaper \
@@ -270,13 +268,6 @@ PRODUCT_PACKAGES += \
 	CameraGoogle \
 	ShuttleTools \
 	zRAMconfig
-
-
-#	recovery-reboot 
-#  	openvpn \
-#	liblzo \
-#	Superuser \
-#       su \
 
 # for bugmailer
 #ifneq ($(TARGET_BUILD_VARIANT),user)

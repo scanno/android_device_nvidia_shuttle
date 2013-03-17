@@ -20,6 +20,8 @@ on init
     symlink /storage/emulated/legacy /storage/sdcard0
     symlink /mnt/shell/emulated/0 /storage/emulated/legacy
 
+    symlink /storage/sdcard1 /sdcard1
+
     # Enable secondary storage
     export SECONDARY_STORAGE /storage/sdcard1
 
