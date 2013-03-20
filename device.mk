@@ -165,8 +165,8 @@ PRODUCT_PROPERTY_OVERRIDES := \
 # Generic
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/vold.fstab:system/etc/vold.fstab \
-   $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh \
-   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
+   $(LOCAL_PATH)/files/vega_postboot.sh:system/etc/vega_postboot.sh 
+#   $(LOCAL_PATH)/files/flash_image:system/xbin/flash_image 
    
 # APNs list
 PRODUCT_COPY_FILES += \

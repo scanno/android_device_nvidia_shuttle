@@ -45,9 +45,14 @@ TARGET_ARCH_VARIANT_FPU := vfpv3-d16
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
 #COMMON_GLOBAL_CFLAGS += -DICS_AUDIO_BLOB
-#Stock CMDLINE
 
-BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),451456K@23680K(system),32768K@475648K(cache),4096K@508928K(staging),10112K@513536K(userdata)
+##################
+#Stock CMDLINE
+#BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(recovery),8192K@14976K(boot),451456K@23680K(system),32768K@475648K(cache),4096K@508928K(staging),10112K@513536K(userdata)
+
+##################
+# Commandline with recovery moved to data partition
+BOARD_KERNEL_CMDLINE := panic=10 mem=512M@0M nvmem=128M@512M vmalloc=256M video=tegrafb console=ttyS0,115200n8 usbcore.old_scheme_first=1 mtdparts=tegra_nand:2048K@6784K(misc),5120K@9344K(userdata),8192K@14976K(boot),451456K@23680K(system),32768K@475648K(cache),4096K@508928K(staging),10112K@513536K(recovery)
 
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_PAGE_SIZE := 0x00000800
@@ -143,9 +148,15 @@ BOARD_USE_SKIA_LCDTEXT := true
 # Avoid generating of ldrcc instructions
 NEED_WORKAROUND_CORTEX_A9_745320 := true
 
-TARGET_RECOVERY_UI_LIB := librecovery_ui_shuttle
+#TARGET_RECOVERY_UI_LIB := librecovery_ui_shuttle
 TARGET_RELEASETOOLS_EXTENSIONS := device/nvidia/shuttle
 
 #TWRP
-#DEVICE_RESOLUTION := 1024x600
+DEVICE_RESOLUTION := 1024x600
+
+TW_INTERNAL_STORAGE_PATH := "/data/media"
+TW_INTERNAL_STORAGE_MOUNT_POINT := "data"
+TW_EXTERNAL_STORAGE_PATH := "/sdcard"
+TW_EXTERNAL_STORAGE_MOUNT_POINT := "sdcard"
+
 
