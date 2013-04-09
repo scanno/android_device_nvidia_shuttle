@@ -1,6 +1,5 @@
 # mount point	fstype		device
 /sdcard		vfat		/dev/block/mmcblk0p1
-/emmc           datamedia       /dev/null
 
 /system		yaffs2		system
 /cache		yaffs2		cache
