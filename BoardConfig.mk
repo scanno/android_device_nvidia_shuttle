@@ -65,8 +65,8 @@ TARGET_BOOTLOADER_BOARD_NAME := shuttle
 
 # Try to build the kernel
 TARGET_KERNEL_SOURCE := kernel/nvidia/shuttle
-TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
-#TARGET_KERNEL_CONFIG := tegra_shuttle_ubuntu_defconfig
+#TARGET_KERNEL_CONFIG := tegra_shuttle_defconfig
+TARGET_KERNEL_CONFIG := tegra_shuttle_ubuntu_defconfig
 
 WIFI_MODULES:
 	make -C device/nvidia/shuttle/wlan/AR6kSDK.2.2.1.151/ ANDROID_ENV=1 ANDROID=1 ATH_LINUXPATH=$(KERNEL_OUT) ATH_CROSS_COMPILE_TYPE=$(ARM_EABI_TOOLCHAIN)/arm-eabi-

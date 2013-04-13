@@ -134,7 +134,7 @@ on fs
     mount yaffs2 mtd@system /system
 #    mount yaffs2 mtd@system /system ro remount
 #    mount yaffs2 mtd@userdata /data nosuid nodev
-    mount yaffs2 mtd@cache /cache nosuid nodev
+     mount yaffs2 mtd@cache /cache nodev
 
 on post-fs
     # once everything is setup, no need to modify /
@@ -477,12 +477,12 @@ service media /system/bin/mediaserver
     group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc qcom_diag
     ioprio rt 4
 
-service bootanim /system/bin/bootanimation
-    class main
-    user graphics
-    group graphics
-    disabled
-    oneshot
+#service bootanim /system/bin/bootanimation
+#    class main
+#    user graphics
+#    group graphics
+#    disabled
+#    oneshot
 
 service installd /system/bin/installd
     class main

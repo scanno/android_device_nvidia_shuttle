@@ -140,11 +140,11 @@ PRODUCT_PACKAGES += \
 
 # Reboot into recovery
 PRODUCT_COPY_FILES += \
-   $(LOCAL_PATH)/files/recovery:system/bin/recovery
-#   $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery \
+   $(LOCAL_PATH)/files/recovery:system/bin/recovery \
+   $(LOCAL_PATH)/files/setrecovery:system/bin/setrecovery 
 
-PRODUCT_PACKAGES += \
-     setrecovery
+#PRODUCT_PACKAGES += \
+#     setrecovery
 
 PRODUCT_COPY_FILES += \
    $(LOCAL_PATH)/files/etc/init.gprs-pppd:system/etc/init.gprs-pppd \

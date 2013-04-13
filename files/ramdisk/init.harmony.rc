@@ -45,22 +45,25 @@ on fs
     mount squashfs loop@/system/lib.sfs /system/lib ro
     mount squashfs loop@/system/media.sfs /system/media ro
 
+    
+
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
+    wait /dev/block/mmcblk0p2
     mount_all /fstab.shuttle
+#    mount ext4 /dev/block/mmcblk0p2 /data wait noatime nodiratime nosuid nodev data=writeback barrier=0
+#####
+# Ubuntu Touch needs suid
+    mount ext4 /dev/block/mmcblk0p2 /data wait noatime nodiratime nodev data=writeback barrier=0
 
-    wait /dev/block/mmcblk0p2
-    wait /dev/block/mmcblk0p2
-    wait /dev/block/mmcblk0p2
-    wait /dev/block/mmcblk0p2
-
-#    mount ext4 /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev data=writeback
-    mount ext4 /dev/block/mmcblk0p2 /data wait noatime nodiratime nosuid nodev data=writeback barrier=0
 
 #####
 # Lines below added as test
 
-    mkdir /data/cache
-    exec /system/xbin/busybox mount --bind /data/cache /cache
-    mount ext4 /data/cache /cache noatime nosuid nodev errors=panic wait
+#    mkdir /data/cache
+#    exec /system/xbin/busybox mount --bind /data/cache /cache
+#    mount ext4 /data/cache /cache noatime nosuid nodev errors=panic wait
 
 # End test
 #####
